@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary:       #006837;
+    --primary-light: #00a568;
+    --primary-dark:  #004d28;
+    --bg-main:       #f4f7f9;
+    --card-shadow:   0 8px 24px -6px rgba(0,0,0,0.08);
+  }
+
+  html, body {
+    @apply bg-[#f4f7f9] text-gray-800;
+    font-family: var(--font-kanit), 'Kanit', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  * { box-sizing: border-box; }
+}
+
+@layer utilities {
+  .font-kanit { font-family: var(--font-kanit), 'Kanit', sans-serif; }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-[#006837] text-white rounded-full py-3 px-6 font-semibold
+           transition-all active:scale-95 hover:bg-[#00a568]
+           shadow-[0_4px_12px_rgba(0,104,55,0.3)] w-full;
+  }
+
+  /* Glass card */
+  .glass-card {
+    @apply bg-white/95 rounded-2xl shadow-(--card-shadow) border border-white;
+  }
+
+  /* Bottom nav height offset */
+  .pb-nav { padding-bottom: 90px; }
+
+  /* Status badges */
+  .badge-waiting   { @apply bg-amber-50  text-amber-600  border border-amber-300  rounded-full px-3 py-1 text-xs font-semibold; }
+  .badge-cooking   { @apply bg-blue-50   text-blue-600   border border-blue-300   rounded-full px-3 py-1 text-xs font-semibold; }
+  .badge-ready     { @apply bg-green-50  text-green-700  border border-green-400  rounded-full px-3 py-1 text-xs font-semibold; }
+  .badge-completed { @apply bg-gray-100  text-gray-500   border border-gray-300   rounded-full px-3 py-1 text-xs font-semibold; }
+  .badge-cancelled { @apply bg-red-50    text-red-600    border border-red-300    rounded-full px-3 py-1 text-xs font-semibold; }
+
+  /* Skeleton */
+  .skeleton {
+    @apply bg-gray-200 rounded-lg animate-pulse;
+  }
+}
+
+/* Smooth scroll */
+html { scroll-behavior: smooth; }
+
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Slide-up animation */
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-slide-up { animation: slideUp 0.35s ease forwards; }
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+
+/* Zoom in */
+@keyframes zoomIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.animate-zoom-in { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
