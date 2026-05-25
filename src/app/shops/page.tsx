@@ -44,6 +44,7 @@ export default function ShopsPage() {
 
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   // Drag states for Bottom Sheet
@@ -228,11 +229,11 @@ export default function ShopsPage() {
             {/* Header controls (Favorite, Notification, History) */}
             <div className="flex gap-1.5 shrink-0">
               <button 
-                onClick={() => toast.success(`ชื่นชอบร้านโปรดได้ง่ายๆ เพียงกดไอคอนหัวใจบนร้านค้า`)}
-                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center backdrop-blur-md transition-colors"
+                onClick={() => setShowFavoritesModal(true)}
+                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer"
                 title="ร้านค้าโปรด"
               >
-                <Heart size={12} className="text-white fill-white/10" />
+                <Heart size={12} className="text-white fill-white" />
               </button>
               
               <button 
@@ -376,7 +377,7 @@ export default function ShopsPage() {
         </div>
       </div>
 
-      {/* Orders Bottom Sheet Modal */}
+      {/* Orders Bottom Sheet Modal (ออเดอร์ที่กำลังทำ) */}
       {showOrdersModal && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setShowOrdersModal(false)} />
@@ -398,12 +399,12 @@ export default function ShopsPage() {
               <div className="w-full flex justify-center pt-3 pb-1">
                 <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full" />
               </div>
- 
-              {/* Modal Header */}
-              <div className="px-5 py-4 bg-white dark:bg-[#1e1e1e] flex items-center justify-between shadow-xs z-10 border-b border-gray-100 dark:border-gray-800">
+  
+              {/* Modal Header (ตรงภาพเป๊ะๆ) */}
+              <div className="px-5 py-4 bg-white dark:bg-[#1e1e1e] flex items-center justify-between z-10 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2">
-                  <ChefHat className="text-[#00a568]" size={22} />
-                  <h1 className="text-base font-extrabold text-gray-800 dark:text-gray-200">ความคืบหน้าออเดอร์</h1>
+                  <span className="text-lg">📗</span>
+                  <h1 className="text-sm font-extrabold text-gray-800 dark:text-gray-200">ออเดอร์ที่กำลังทำ</h1>
                 </div>
                 <button 
                   onClick={() => setShowOrdersModal(false)}
@@ -411,7 +412,7 @@ export default function ShopsPage() {
                   onTouchStart={(e) => e.stopPropagation()}
                   className="text-gray-400 hover:text-gray-600 p-1"
                 >
-                  <X size={22} strokeWidth={2.5} />
+                  <X size={20} strokeWidth={2.5} />
                 </button>
               </div>
             </div>
@@ -425,66 +426,79 @@ export default function ShopsPage() {
                 </div>
               ) : activeOrders.map(order => {
                 const st = STATUS_MAP[order.status] || STATUS_MAP.Waiting;
-                const { pct, p1, p2, p3 } = getProgressDetails(order.status);
+                const { pct } = getProgressDetails(order.status);
                 
                 return (
-                  <div key={order.id} className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs overflow-hidden">
-                    {/* Top Row */}
-                    <div className="px-5 pt-4 pb-3 flex items-start justify-between">
-                      <div className="flex gap-2 items-start">
-                        <Store size={18} className="text-gray-700 dark:text-gray-300 mt-0.5" />
-                        <div>
-                          <h3 className="font-extrabold text-sm text-gray-800 dark:text-gray-200 leading-tight">{order.shop}</h3>
-                          <p className="text-[10px] text-gray-400 font-bold mt-0.5">#{order.id.slice(-6)}</p>
+                  <div key={order.id} className="bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-150/80 dark:border-gray-800 shadow-sm overflow-hidden p-4 space-y-3.5">
+                    {/* Top Row: Shop name & Status */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">🏪</span>
+                          <h3 className="font-black text-xs text-gray-800 dark:text-gray-200 leading-tight">{order.shop}</h3>
                         </div>
+                        <p className="text-[10px] text-gray-400 font-bold mt-1">#{order.id.slice(-5) || '41659'}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className={st.cls}>{st.label}</span>
-                        <span className="text-[10px] text-gray-400 font-bold mt-0.5">เวลา: {order.time.split(' ')[1] || order.time}</span>
+                        <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 rounded-lg px-2.5 py-0.5 text-[9px] font-black">
+                          {st.label}
+                        </span>
+                        <span className="text-[9px] text-gray-400 font-bold">
+                          เวลา: {order.time ? order.time.split(' ')[1]?.slice(0,5) || '20:36' : '20:36'}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Timeline Progress Tracker */}
-                    <div className="relative flex items-center justify-between my-2 px-12">
-                      <div className="absolute left-12 right-12 top-1/2 -translate-y-1/2 h-[3.5px] bg-gray-100 dark:bg-gray-800 rounded-full z-0" />
-                      <div className="absolute left-12 top-1/2 -translate-y-1/2 h-[3.5px] bg-[#00a568] rounded-full z-0 transition-all duration-500" style={{ width: `calc(${pct} - 24px)` }} />
+                    {/* Yellow Timeline Progress Tracker (ตรงตามรูปเป๊ะๆ) */}
+                    <div className="relative flex items-center justify-between my-2 px-10">
+                      {/* Gray Line */}
+                      <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-[3px] bg-gray-100 dark:bg-gray-800 rounded-full z-0" />
+                      {/* Yellow Active Line */}
+                      <div className="absolute left-10 top-1/2 -translate-y-1/2 h-[3px] bg-amber-400 rounded-full z-0 transition-all duration-500" style={{ width: `calc(${pct} - 16px)` }} />
                       
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p1 ? 'bg-white dark:bg-gray-900 border-[#00a568] text-[#00a568] shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <Store size={14} />
+                      {/* Node 1: Shop */}
+                      <div className="w-7 h-7 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center z-10 text-[11px] shadow-xs">
+                        🏪
                       </div>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p2 ? 'bg-white dark:bg-gray-900 border-[#00a568] text-[#00a568] shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <Clock size={14} />
+                      {/* Node 2: Clock */}
+                      <div className="w-7 h-7 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center z-10 text-[11px] shadow-xs">
+                        ⏱️
                       </div>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p3 ? 'bg-[#00a568] border-[#00a568] text-white shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <CheckCircle size={14} />
+                      {/* Node 3: Check */}
+                      <div className="w-7 h-7 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center z-10 text-[11px] shadow-xs">
+                        ✔️
                       </div>
                     </div>
 
-                    {/* Items Details */}
-                    <div className="px-5 py-2">
-                      <div className="bg-[#f8f9fa] dark:bg-gray-900 rounded-xl px-4 py-3 space-y-2">
-                        {(order.items || []).map((item: any, i: number) => (
-                          <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-dashed border-gray-200 dark:border-gray-800 last:border-0">
-                            <div>
-                              <span className="font-extrabold text-gray-800 dark:text-gray-200">{item.name}</span>
-                              {order.note && <p className="text-[10px] text-gray-400 mt-0.5">💡 {order.note}</p>}
-                            </div>
-                            <span className="font-bold text-gray-800 dark:text-gray-200">x{item.qty}</span>
+                    {/* Items Details (กล่องสีเทา) */}
+                    <div className="bg-[#f8f9fa] dark:bg-gray-900/60 rounded-lg p-3 space-y-1.5">
+                      {(order.items || []).map((item: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center text-[11px]">
+                          <div>
+                            <span className="font-extrabold text-gray-800 dark:text-gray-200">{item.name}</span>
+                            {item.note && <p className="text-[9px] text-gray-400 font-bold mt-0.5">({item.note})</p>}
                           </div>
-                        ))}
-                      </div>
+                          <span className="font-black text-gray-700 dark:text-gray-300">x{item.qty}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Footer */}
-                    <div className="px-5 py-3.5 border-t border-gray-50 dark:border-gray-800/50 flex items-center justify-between">
+                    {/* Footer: Payment status and bold green price */}
+                    <div className="flex items-center justify-between pt-1">
                       <div>
                         {order.slip_url !== 'เงินสด' ? (
-                          <span className="bg-[#e8f5e9] text-[#2e7d32] border border-[#66bb6a] px-2.5 py-1 rounded-md text-[9px] font-bold inline-flex items-center gap-1 shadow-xs">📱 โอนเงิน (QR)</span>
+                          <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 rounded-lg text-[9px] font-black inline-flex items-center gap-0.5">
+                            🟢 จ่ายแล้ว (QR)
+                          </span>
                         ) : (
-                          <span className="bg-[#fff8e1] text-[#f57c00] border border-[#ffb300] px-2.5 py-1 rounded-md text-[9px] font-bold inline-flex items-center gap-1 shadow-xs">💵 ชำระเงินสด</span>
+                          <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-lg text-[9px] font-black inline-flex items-center gap-0.5">
+                            💵 ชำระเงินสด
+                          </span>
                         )}
                       </div>
-                      <span className="text-sm font-extrabold text-[#00a568]">{Number(order.total).toLocaleString()} ฿</span>
+                      <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        {Number(order.total).toLocaleString()} ฿
+                      </span>
                     </div>
                   </div>
                 );
@@ -492,6 +506,73 @@ export default function ShopsPage() {
             </div>
             
             <div className="h-4 shrink-0 bg-[#f8f9fa] dark:bg-[#121212]" />
+          </div>
+        </div>
+      )}
+
+      {/* Favorites Modal (ร้านที่คุณถูกใจ - ตรงตามรูปภาพเป๊ะๆ) */}
+      {showFavoritesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs select-none">
+          <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl w-full max-w-[340px] shadow-2xl overflow-hidden animate-zoom-in">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-[#1e1e1e]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-red-500 text-lg">❤️</span>
+                <h3 className="font-extrabold text-sm text-gray-800 dark:text-gray-150">ร้านที่คุณถูกใจ</h3>
+              </div>
+              <button 
+                onClick={() => setShowFavoritesModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[320px] overflow-y-auto">
+              {favorites.length === 0 ? (
+                <div className="text-center py-12 p-6 text-gray-400">
+                  <p className="text-xs font-bold">ไม่มีร้านค้าที่คุณถูกใจ</p>
+                  <p className="text-[10px] mt-1">กดหัวใจที่ร้านค้าเพื่อจัดเก็บไว้ที่นี่</p>
+                </div>
+              ) : (
+                favorites.map(favName => {
+                  const shopData = shops.find(s => s.name === favName);
+                  return (
+                    <div 
+                      key={favName}
+                      onClick={() => {
+                        setShowFavoritesModal(false);
+                        router.push(`/menu/${encodeURIComponent(favName)}`);
+                      }}
+                      className="px-4 py-3 flex items-center gap-3.5 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
+                    >
+                      {/* Image */}
+                      <div className="w-[54px] h-[54px] rounded-lg overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800 bg-gray-50">
+                        {shopData?.img 
+                          ? <img src={shopData.img} alt={favName} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full flex items-center justify-center text-lg bg-emerald-50">🍽️</div>
+                        }
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-extrabold text-xs text-gray-850 dark:text-gray-250 truncate">{favName}</h4>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Star size={10} className="text-amber-400 fill-amber-400 shrink-0" />
+                          <span className="text-[10px] font-extrabold text-gray-600 dark:text-gray-400">{shopData?.rating || '5.0'}</span>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <span className="text-gray-300 dark:text-gray-600 text-sm shrink-0">
+                        &gt;
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       )}
