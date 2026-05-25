@@ -163,7 +163,7 @@ export const utilsApi = {
   
   getFavorites: async (uid: string) => {
     const res = await wrap(supabase.from('users').select('favorites').eq('id', uid).single());
-    return { ...res, data: res.data?.favorites || [] };
+    return { ...res, data: (res.data as any)?.favorites || [] };
   },
   
   saveFavorites: (uid: string, favs: string[]) => 
