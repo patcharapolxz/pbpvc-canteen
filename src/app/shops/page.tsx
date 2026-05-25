@@ -204,102 +204,112 @@ export default function ShopsPage() {
           </div>
         )}
 
-        {/* Dynamic Compact Header (LINE MAN style) */}
+        {/* Premium solid header with location, greetings, controls and search bar */}
         <div 
-          className={`sticky bg-gradient-to-b from-[#36c990] to-[#00a568] text-white z-40 transition-all duration-300 shadow-md ${
-            news.length > 0 ? 'top-8' : 'top-0'
-          } ${
-            isCompact 
-              ? 'py-3.5 px-4 rounded-b-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.1)]' 
-              : 'pt-6 pb-6 px-4 md:px-6 rounded-b-[25px] shadow-[0_4px_15px_rgba(0,165,104,0.2)]'
-          }`}
+          className="bg-[#00a568] dark:bg-[#006837] text-white z-40 transition-all duration-300 shadow-md pt-5 pb-6 px-4 md:px-6 rounded-b-[24px]"
         >
-          {/* Top Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-2.5 items-center min-w-0">
-              <img src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" alt="logo" className="w-9 h-9 rounded-full border-2 border-white/50 shadow-sm shrink-0" />
+          {/* Top Row: Logo, Title, and Buttons */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex gap-2 items-center min-w-0">
+              <img 
+                src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" 
+                alt="PBPVC Logo" 
+                className="w-8 h-8 rounded-full border border-white/40 shadow-sm shrink-0" 
+              />
               <div className="min-w-0">
-                <h1 className="text-base font-extrabold leading-tight tracking-wide truncate">PBPVC Canteen</h1>
-                {!isCompact && (
-                  <div className="flex items-center gap-1 opacity-90 mt-0.5 animate-fade-in">
-                    <MapPin size={10} className="text-[#f1c40f]" />
-                    <p className="text-[10px] font-medium truncate">วิทยาลัยอาชีวศึกษาเพชรบุรี</p>
-                  </div>
-                )}
+                <h1 className="text-sm font-black leading-tight tracking-wide truncate">PBPVC Canteen</h1>
+                <div className="flex items-center gap-1 opacity-90 mt-0.5">
+                  <MapPin size={9} className="text-[#f1c40f] shrink-0" />
+                  <p className="text-[9px] font-semibold truncate text-white/90">โรงอาหารวิทยาลัยอาชีวศึกษาเพชรบุรี</p>
+                </div>
               </div>
             </div>
             
-            {/* Header controls */}
-            <div className="flex gap-2">
-              <button onClick={() => toast.success(`ชื่นชอบร้านโปรดได้ง่ายๆ เพียงกดไอคอนหัวใจ`)}
-                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors">
-                <Heart size={14} className="text-white" />
+            {/* Header controls (Favorite, Notification, History) */}
+            <div className="flex gap-1.5 shrink-0">
+              <button 
+                onClick={() => toast.success(`ชื่นชอบร้านโปรดได้ง่ายๆ เพียงกดไอคอนหัวใจบนร้านค้า`)}
+                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center backdrop-blur-md transition-colors"
+                title="ร้านค้าโปรด"
+              >
+                <Heart size={12} className="text-white fill-white/10" />
               </button>
-              <button onClick={() => router.push('/notifications')}
-                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors relative cursor-pointer">
-                <Bell size={14} />
+              
+              <button 
+                onClick={() => router.push('/notifications')}
+                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center backdrop-blur-md transition-colors relative cursor-pointer"
+                title="การแจ้งเตือน"
+              >
+                <Bell size={12} className="text-white" />
                 {unreadNotifs > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-md animate-pulse">
                     {unreadNotifs}
                   </span>
                 )}
               </button>
+
+              <button 
+                onClick={() => router.push('/orders')}
+                className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer"
+                title="ประวัติการสั่งซื้อ"
+              >
+                <Clock size={12} className="text-white" />
+              </button>
             </div>
           </div>
 
-          {/* Welcome User greeting - visible only when NOT compact */}
-          {!isCompact && (
-            <div className="flex items-end justify-between mb-3 px-1 animate-fade-in">
-              <div>
-                <h2 className="text-lg font-bold">สวัสดี {currentUser.nick || currentUser.name} 👋</h2>
-                <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">หิวหรือยัง? เลือกสั่งอาหารโปรดได้เลย</p>
-              </div>
+          {/* User greeting and subtext row */}
+          <div className="flex items-end justify-between mb-4 mt-2 px-1">
+            <div>
+              <h2 className="text-base font-extrabold tracking-tight">สวัสดี {currentUser.nick || currentUser.name}</h2>
             </div>
-          )}
+            <div>
+              <span className="text-[10px] text-emerald-100 font-bold opacity-90">หิวหรือยัง? สั่งเลย!</span>
+            </div>
+          </div>
 
           {/* Search bar */}
-          <div className="bg-white rounded-full flex items-center px-4 py-2.5 text-gray-800 shadow-sm transition-shadow focus-within:shadow-md">
-            <Search size={16} className="text-gray-400 mr-2 shrink-0" />
-            <input type="text" value={query} onChange={(e) => handleSearch(e.target.value)}
-              placeholder="ค้นหาร้านค้า หรือรายการอาหาร..."
-              className="flex-1 bg-transparent outline-none text-xs font-semibold placeholder-gray-400 min-w-0" />
+          <div className="bg-white rounded-full flex items-center px-4 py-2 text-gray-800 shadow-sm transition-shadow focus-within:shadow-md">
+            <Search size={14} className="text-gray-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              value={query} 
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="ค้นหาร้าน, เมนูอาหาร..."
+              className="flex-1 bg-transparent outline-none text-xs font-semibold placeholder-gray-400 min-w-0" 
+            />
           </div>
         </div>
 
         {/* Content Area */}
         <div className="px-4 md:px-6 mt-4 space-y-4 max-w-7xl mx-auto mb-8 relative z-10">
           
-          {/* Active Orders Tracker Banner */}
+          {/* Active Orders Tracker Card (ถอดแบบติดตามออเดอร์จากรูปเป๊ะๆ) */}
           {activeOrders.length > 0 && (
             <div 
-              className="bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md rounded-2xl border-2 border-[#00a568] p-3.5 flex items-center justify-between shadow-md cursor-pointer hover:shadow-lg transition-all animate-bounce" 
+              className="bg-white dark:bg-[#1e1e1e] rounded-xl border border-emerald-800/25 dark:border-emerald-500/20 p-3 flex items-center justify-between shadow-xs cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-all" 
               onClick={() => setShowOrdersModal(true)}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-[#00a568]">
-                  <Utensils size={18} />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-[#00a568]">
+                  <Utensils size={15} />
                 </div>
                 <div>
-                  <p className="text-xs font-extrabold text-gray-800 dark:text-gray-200">ติดตามอาหารของคุณ</p>
-                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">คลิกเพื่อดูความคืบหน้า...</p>
+                  <p className="text-xs font-extrabold text-gray-800 dark:text-gray-200">ติดตามออเดอร์</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">กำลังดำเนินการ...</p>
                 </div>
               </div>
-              <span className="bg-[#dc3545] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-sm">
-                {activeOrders.length} ออเดอร์
+              <span className="bg-[#dc3545] text-white text-[9px] font-extrabold px-3 py-1 rounded-full shadow-sm">
+                {activeOrders.length} รายการ
               </span>
             </div>
           )}
 
-          {/* Favorites Header if any exists */}
-          {favorites.length > 0 && (
-            <h3 className="font-extrabold text-xs text-gray-400 uppercase tracking-wider mb-2 px-1">💖 ร้านโปรดของคุณ</h3>
-          )}
-
-          {/* Shop List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Shop Grid (2 Columns as shown in desktop screenshot) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-[#1e1e1e] rounded-2xl p-4 flex gap-3 shadow-sm border border-gray-100 dark:border-gray-800">
+                <div key={i} className="bg-white dark:bg-[#1e1e1e] rounded-xl p-3.5 flex gap-3 shadow-sm border border-gray-100 dark:border-gray-800">
                   <div className="w-[75px] h-[75px] rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse shrink-0" />
                   <div className="flex-1 space-y-2 py-1">
                     <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 animate-pulse" />
@@ -318,42 +328,43 @@ export default function ShopsPage() {
                 const isFav = favorites.includes(shop.name);
                 return (
                   <div key={shop.name}
-                    className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm flex items-center gap-3.5 p-3.5 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all border border-gray-100/60 dark:border-gray-800/60 relative group"
+                    className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-xs flex items-center gap-3.5 p-3.5 cursor-pointer hover:shadow-sm active:scale-[0.99] transition-all border border-gray-100 dark:border-gray-800/80 relative"
                     onClick={() => router.push(`/menu/${encodeURIComponent(shop.name)}`)}>
                     
-                    <div className="relative w-[75px] h-[75px] shrink-0">
-                      <div className={`w-full h-full rounded-[14px] overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-inner ${!shop.isOpen ? 'grayscale opacity-60' : ''}`}>
+                    {/* Shop Square Image */}
+                    <div className="relative w-[70px] h-[70px] shrink-0">
+                      <div className={`w-full h-full rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 ${!shop.isOpen ? 'grayscale opacity-60' : ''}`}>
                         {shop.img 
                           ? <img src={shop.img} alt={shop.name} className="w-full h-full object-cover" /> 
-                          : <div className="w-full h-full flex items-center justify-center text-2xl bg-emerald-50 dark:bg-emerald-950">🍽️</div>
+                          : <div className="w-full h-full flex items-center justify-center text-xl bg-emerald-50 dark:bg-emerald-950">🍽️</div>
                         }
                       </div>
                     </div>
                     
+                    {/* Shop Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-extrabold text-gray-800 dark:text-gray-200 text-sm truncate">{shop.name}</h3>
+                      <div className="flex items-center gap-1">
+                        <h3 className="font-extrabold text-gray-850 dark:text-gray-200 text-xs truncate leading-snug">{shop.name}</h3>
                         <button 
                           onClick={(e) => toggleFav(e, shop.name)}
-                          className="text-gray-300 hover:text-red-500 transition-colors shrink-0 ml-0.5 p-0.5"
+                          className="text-gray-300 hover:text-red-500 transition-colors shrink-0 ml-auto p-0.5"
                         >
-                          <Heart size={14} className={isFav ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600'} />
+                          <Heart size={12} className={isFav ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600'} />
                         </button>
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Star size={11} className="text-amber-400 fill-amber-400" />
-                        <span className="text-[11px] font-extrabold text-gray-700 dark:text-gray-300">{shop.rating}</span>
-                        {shop.reviews > 0 && (
-                          <span className="text-[10px] text-gray-400 font-medium">({shop.reviews} รีวิว)</span>
-                        )}
+                        <Star size={10} className="text-amber-400 fill-amber-400 shrink-0" />
+                        <span className="text-[10px] font-extrabold text-gray-700 dark:text-gray-300">{shop.rating}</span>
+                        <span className="text-[9px] text-gray-400 font-bold">({shop.reviews})</span>
                       </div>
-                      <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 truncate font-semibold">{shop.tags || 'ของคาว, อาหารจานเดียว'}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 truncate font-bold">{shop.tags || 'ทั่วไป'}</p>
                     </div>
                     
+                    {/* Closed Shop Overlay badge */}
                     {!shop.isOpen && (
-                      <div className="shrink-0 pl-1">
-                        <span className="bg-gray-400 text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <Store size={9} /> ร้านปิด
+                      <div className="absolute right-3.5 bottom-3.5 z-10">
+                        <span className="bg-[#788290] text-white text-[8px] font-black px-2 py-0.5 rounded-md flex items-center gap-0.5 shadow-xs">
+                          <Store size={8} /> ร้านปิด
                         </span>
                       </div>
                     )}
