@@ -20,6 +20,13 @@
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+    
+    /* ⚡ ป้องกัน Delay 300ms บนมือถือ (กดแล้วปุ่มตอบสนองทันที) */
+    a, button, [onclick], .menu-item-list, .food-card, .cat-tab, .filter-chip, .payment-option {
+        touch-action: manipulation;
+        cursor: pointer;
+    }
+
     /* --- SKELETON LOADING ANIMATION --- */
     .skeleton-box {
         background: #e0e0e0;
@@ -2880,10 +2887,24 @@ body {
 
       fetchShops() { 
           ui.switchPage('shops');
-          ui.renderSkeleton('shop-list', 'shop'); 
+          
+          // ⚡ โหลดร้านค้าจากแคชก่อน เพื่อให้กดปุ่มกลับหรือเปิดแอปแล้วข้อมูลมาทันทีไม่ต้องรอหมุน
+          const cachedShops = localStorage.getItem('shops_cache');
+          if (cachedShops) {
+              try {
+                  const parsed = JSON.parse(cachedShops);
+                  this.allShops = parsed;
+                  ui.renderShops(parsed);
+              } catch(e) {
+                  ui.renderSkeleton('shop-list', 'shop');
+              }
+          } else {
+              ui.renderSkeleton('shop-list', 'shop');
+          }
 
           google.script.run.withSuccessHandler(res => { 
               if(res.success) {
+                  localStorage.setItem('shops_cache', JSON.stringify(res.data));
                   this.allShops = res.data; // 🟢 เพิ่มบรรทัดนี้: จำข้อมูลร้านไว้ใช้ใน Fav
                   ui.renderShops(res.data); 
               }
@@ -2915,10 +2936,25 @@ body {
 
           // สลับหน้า
           ui.switchPage('student');
-          ui.renderSkeleton('menu-list', 'menu');
+          
+          // ⚡ โหลดรายการอาหารจากแคชทันทีเพื่อให้กดแล้วเมนูโผล่ทันที ไม่จอดำ/ไม่ค้าง
+          const cachedMenu = localStorage.getItem('menu_cache_' + shopName);
+          if (cachedMenu) {
+              try {
+                  const parsed = JSON.parse(cachedMenu);
+                  ui.renderMenu(parsed);
+              } catch(e) {
+                  ui.renderSkeleton('menu-list', 'menu');
+              }
+          } else {
+              ui.renderSkeleton('menu-list', 'menu');
+          }
 
           google.script.run.withSuccessHandler(res => { 
-              if (res.success) ui.renderMenu(res.data); 
+              if (res.success) {
+                  localStorage.setItem('menu_cache_' + shopName, JSON.stringify(res.data));
+                  ui.renderMenu(res.data); 
+              }
           }).apiGetMenu(shopName); 
       }
       
