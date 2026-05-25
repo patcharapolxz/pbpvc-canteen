@@ -112,9 +112,26 @@ export default function ShopsPage() {
     const loggedInUser = getPersistedUser();
     if (!loggedInUser) { router.replace('/login'); return; }
     
+    // ⚡ โหลดรายการร้านค้าจาก Local Cache ก่อน เพื่อเปิดแอปแล้วทุกอย่างโผล่ทันที ไม่ต้องรอหน้าจอเปล่า
+    const cachedShops = localStorage.getItem('pbpvc_shops_cache');
+    if (cachedShops) {
+      try {
+        const parsed = JSON.parse(cachedShops);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setShops(parsed);
+          setFiltered(parsed);
+          setLoading(false);
+        }
+      } catch (e) {}
+    }
+
     // Load Shops
     shopsApi.list().then((r: any) => {
-      if (r.success) { setShops(r.data); setFiltered(r.data); }
+      if (r.success) {
+        setShops(r.data);
+        setFiltered(r.data);
+        localStorage.setItem('pbpvc_shops_cache', JSON.stringify(r.data));
+      }
       setLoading(false);
     }).catch(() => setLoading(false));
 

@@ -42,15 +42,33 @@ export default function MenuPage() {
     setMounted(true);
     const loggedInUser = getPersistedUser();
     if (!loggedInUser) { router.replace('/login'); return; }
+    
+    // ⚡ ดึงเมนูจาก Local Cache ก่อน เพื่อแสดงผลทันทีภายในไม่กี่มิลลิวินาที
+    const cacheKey = `pbpvc_menu_cache_${shopName}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMenu(parsed);
+          const allCats = ['ทั้งหมด', ...new Set<string>(parsed.map((m: MenuItem) => m.cat).filter(Boolean))];
+          setCats(allCats);
+          setLoading(false); // ปิดการหมุนโหลดทันทีเมื่อมีข้อมูลเก่า
+        }
+      } catch (e) {}
+    }
+
+    // ดึงเมนูล่าสุดจากหลังบ้านเงียบๆ เพื่อมาอัปเดตออโตเมติก
     menuApi.get(shopName).then((r: any) => {
       if (r.success) {
         const items = r.data.filter((m: MenuItem) => m.status !== 'Hidden');
         setMenu(items);
         const allCats = ['ทั้งหมด', ...new Set<string>(items.map((m: MenuItem) => m.cat).filter(Boolean))];
         setCats(allCats);
+        localStorage.setItem(cacheKey, JSON.stringify(items));
       }
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [shopName, router]);
 
   const filteredMenu = activeCat === 'ทั้งหมด'
