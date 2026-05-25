@@ -307,11 +307,11 @@ export default function MenuPage() {
         </div>
       )}
 
-      {/* Options Modifier Bottom Sheet Modal */}
+      {/* Options Modifier Centered Modal */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-fade-in" onClick={() => setSelectedItem(null)} />
-          <div className="relative bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl rounded-t-[32px] w-full max-h-[85vh] flex flex-col shadow-[0_-15px_40px_rgba(0,0,0,0.2)] animate-slide-up border-t border-white/20 dark:border-white/5">
+          <div className="relative bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl rounded-[28px] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-scale-up border border-white/20 dark:border-white/5 overflow-hidden">
             
             {/* Header */}
             <div className="px-5 py-4.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
@@ -436,7 +436,7 @@ export default function MenuPage() {
             </div>
 
             {/* Confirm Add Button */}
-            <div className="p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] shrink-0 pb-safe">
+            <div className="p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] shrink-0">
               <button onClick={handleAddWithModifiers}
                 className="w-full bg-gradient-to-r from-[#006837] to-[#00a568] hover:scale-[1.01] active:scale-[0.98] text-white font-extrabold text-sm py-4 rounded-xl shadow-[0_6px_20px_rgba(0,104,55,0.25)] transition-all flex justify-center items-center gap-2"
               >
