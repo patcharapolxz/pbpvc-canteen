@@ -130,11 +130,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative p-4 overflow-hidden select-none">
-      {/* Background Image with layered premium overlay */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center transition-all duration-700 ease-out"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1565895405139-e188df996e0b?auto=format&fit=crop&w=1000&q=80')" }}
-      />
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <Image 
+          src="https://images.unsplash.com/photo-1565895405139-e188df996e0b?auto=format&fit=crop&w=1000&q=80" 
+          alt="Canteen Background" 
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover transition-all duration-700 ease-out" 
+        />
+      </div>
       {/* Dark premium gradient overlay to make the card POP beautifully */}
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-black/20 via-black/35 to-black/50" />
 
@@ -145,10 +150,13 @@ export default function LoginPage() {
           {/* Circular School Logo with elegant layered pulse glow */}
           <div className="w-[96px] h-[96px] rounded-full bg-gradient-to-tr from-[#006837]/15 to-emerald-500/15 flex items-center justify-center mx-auto mb-5 p-1.5 shadow-[0_8px_30px_rgba(0,104,55,0.12)] hover:scale-105 transition-transform duration-300">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden p-1 shadow-sm">
-              <img 
+              <Image 
                 src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" 
-                className="rounded-full w-full h-full object-cover" 
+                width={84}
+                height={84}
+                className="rounded-full w-full h-full object-cover animate-pulse-logo" 
                 alt="PBPVC Logo" 
+                priority
               />
             </div>
           </div>
@@ -290,8 +298,10 @@ export default function LoginPage() {
               
               {/* Logo in the center */}
               <div className="w-[84px] h-[84px] rounded-full bg-white flex items-center justify-center p-1.5 shadow-md overflow-hidden z-10">
-                <img 
+                <Image 
                   src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" 
+                  width={84}
+                  height={84}
                   className="rounded-full w-full h-full object-cover animate-pulse" 
                   alt="PBPVC Logo" 
                 />

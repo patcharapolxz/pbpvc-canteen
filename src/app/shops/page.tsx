@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { shopsApi, ordersApi, newsApi, notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
@@ -144,13 +145,16 @@ export default function ShopsPage() {
     if (saved) setFavorites(JSON.parse(saved));
 
     // Load Active Orders & Notifications count
+    // ⚡ Optimizing: Avoid network waterfalls by using Promise.all to fetch in parallel
     const loadOrdersAndNotifs = async () => {
       try {
-        const res: any = await ordersApi.get(loggedInUser.role, loggedInUser.id);
-        if (res.success) {
-          setActiveOrders(res.data.filter((o: any) => ['Waiting','Cooking','Ready'].includes(o.status)));
+        const [ordersRes, notifRes]: any = await Promise.all([
+          ordersApi.get(loggedInUser.role, loggedInUser.id),
+          notifApi.get(loggedInUser.id)
+        ]);
+        if (ordersRes.success) {
+          setActiveOrders(ordersRes.data.filter((o: any) => ['Waiting','Cooking','Ready'].includes(o.status)));
         }
-        const notifRes: any = await notifApi.get(loggedInUser.id);
         if (notifRes.success) {
           const unread = (notifRes.data || []).filter((n: any) => !n.is_read).length;
           setUnreadNotifs(unread);
@@ -226,10 +230,13 @@ export default function ShopsPage() {
           {/* Top Row: Logo, Title, and Buttons */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex gap-2 items-center min-w-0">
-              <img 
+              <Image 
                 src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" 
                 alt="PBPVC Logo" 
+                width={32}
+                height={32}
                 className="w-8 h-8 rounded-full border border-white/40 shadow-sm shrink-0" 
+                priority
               />
               <div className="min-w-0">
                 <h1 className="text-sm font-black leading-tight tracking-wide truncate">PBPVC Canteen</h1>
@@ -339,7 +346,7 @@ export default function ShopsPage() {
                 <p className="font-bold text-gray-500">ไม่พบร้านค้าที่ตรงกับการค้นหา</p>
               </div>
             ) : (
-              sortedShops.map((shop) => {
+              sortedShops.map((shop, index) => {
                 const isFav = favorites.includes(shop.name);
                 return (
                   <div key={shop.name}
@@ -350,8 +357,16 @@ export default function ShopsPage() {
                     <div className="relative w-[70px] h-[70px] shrink-0">
                       <div className={`w-full h-full rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 ${!shop.isOpen ? 'grayscale opacity-60' : ''}`}>
                         {shop.img 
-                          ? <img src={shop.img} alt={shop.name} className="w-full h-full object-cover" /> 
-                          : <div className="w-full h-full flex items-center justify-center text-xl bg-emerald-50 dark:bg-emerald-950">🍽️</div>
+                          ? (
+                            <Image 
+                              src={shop.img} 
+                              alt={shop.name} 
+                              width={70} 
+                              height={70} 
+                              className="w-full h-full object-cover" 
+                              priority={index < 4} // LCP Performance Optimization for top shops
+                            />
+                          ) : <div className="w-full h-full flex items-center justify-center text-xl bg-emerald-50 dark:bg-emerald-950">🍽️</div>
                         }
                       </div>
                     </div>
@@ -564,8 +579,15 @@ export default function ShopsPage() {
                       {/* Image */}
                       <div className="w-[54px] h-[54px] rounded-lg overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800 bg-gray-50">
                         {shopData?.img 
-                          ? <img src={shopData.img} alt={favName} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center text-lg bg-emerald-50">🍽️</div>
+                          ? (
+                            <Image 
+                              src={shopData.img} 
+                              alt={favName} 
+                              width={54} 
+                              height={54} 
+                              className="w-full h-full object-cover" 
+                            />
+                          ) : <div className="w-full h-full flex items-center justify-center text-lg bg-emerald-50">🍽️</div>
                         }
                       </div>
 

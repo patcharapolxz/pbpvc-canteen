@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { menuApi, shopsApi, utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
@@ -178,9 +179,15 @@ export default function MerchantPage() {
           <div key={item.id}
             className={`bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-xs flex items-center gap-3.5 p-4 border border-gray-100/60 dark:border-gray-800/80 transition-opacity duration-200 ${item.status==='Hidden'?'opacity-50':''}`}
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 shrink-0 border border-gray-100/60 dark:border-gray-800/60">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 shrink-0 border border-gray-100/60 dark:border-gray-800/60 relative">
               {item.img ? (
-                <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
+                <Image 
+                  src={item.img} 
+                  alt={item.name} 
+                  width={64} 
+                  height={64} 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl bg-gray-55 dark:bg-gray-900">🍽️</div>
               )}

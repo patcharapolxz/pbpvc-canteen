@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { menuApi, ordersApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
@@ -235,7 +236,7 @@ export default function MenuPage() {
               <div className="w-[100px] h-[100px] bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse shrink-0" />
             </div>
           ))
-        ) : filteredMenu.map(item => {
+        ) : filteredMenu.map((item, index) => {
           const soldOut = item.status === 'Soldout';
           return (
             <div key={item.id} className={`py-4.5 flex gap-4 border-b border-gray-100/80 dark:border-gray-800/80 last:border-0 ${soldOut ? 'opacity-50' : ''}`}>
@@ -255,7 +256,14 @@ export default function MenuPage() {
                 <div className="w-full h-full rounded-[14px] overflow-hidden bg-gray-50 dark:bg-gray-950 border border-gray-100/60 dark:border-gray-800/60 shadow-xs cursor-zoom-in active:scale-95 duration-200 transition-all hover:shadow-sm"
                   onClick={() => item.img && setPreviewImg({ src: item.img, name: item.name })}>
                   {item.img ? (
-                    <img src={item.img} alt={item.name} className="w-full h-full object-cover hover:scale-105 duration-300 transition-all" />
+                    <Image 
+                      src={item.img} 
+                      alt={item.name} 
+                      width={100} 
+                      height={100} 
+                      className="w-full h-full object-cover hover:scale-105 duration-300 transition-all" 
+                      priority={index < 4} // LCP optimization for top food items
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-3xl">🍲</div>
                   )}
