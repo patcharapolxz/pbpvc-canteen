@@ -223,7 +223,6 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Logout session */}
         <button onClick={() => {
           alert.confirm('ยืนยันออกจากระบบ', 'คุณต้องการออกจากระบบ canteen ใช่หรือไม่?', () => {
             logout();
@@ -234,6 +233,8 @@ export default function ProfilePage() {
           <LogOut size={16} /> ออกจากระบบ canteen
         </button>
       </div>
+
+      <BottomNav />
 
       {/* REPORT ISSUE SHEET */}
       {activeSheet === 'report' && (
