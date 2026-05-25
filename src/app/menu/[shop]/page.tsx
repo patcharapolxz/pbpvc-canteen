@@ -8,7 +8,7 @@ import { menuApi, ordersApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, Plus, Minus, Star, X, Trash2, Clock, MapPin, Search, Edit3 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 interface MenuItem {
   id: string; name: string; price: number; cat: string;
@@ -80,7 +80,7 @@ export default function MenuPage() {
   const currentCart = cartShop === shopName ? cart : [];
 
   const handleOpenModifiers = (item: MenuItem) => {
-    if (item.status === 'Soldout') { toast.error('เมนูนี้หมดแล้ว'); return; }
+    if (item.status === 'Soldout') { alert.error('เมนูนี้หมดแล้ว'); return; }
     setSelectedItem(item);
     setSizeOption('normal');
     setEggOption('none');
@@ -127,12 +127,12 @@ export default function MenuPage() {
       img: selectedItem.img
     }, shopName);
 
-    toast.success(`เพิ่ม ${selectedItem.name} ลงตะกร้าแล้ว`);
+    alert.success(`เพิ่ม ${selectedItem.name} ลงตะกร้าแล้ว`);
     setSelectedItem(null);
   };
 
   const handlePlaceOrder = async () => {
-    if (currentCart.length === 0) { toast.error('ตะกร้าว่างเปล่า'); return; }
+    if (currentCart.length === 0) { alert.error('ตะกร้าว่างเปล่า'); return; }
     setPlacing(true);
     try {
       const loggedInUser = getPersistedUser();
@@ -145,14 +145,14 @@ export default function MenuPage() {
         slip: payMethod === 'cash' ? 'เงินสด' : 'QR_PAYMENT',
       });
       if (res.success) {
-        toast.success(`สั่งซื้อสำเร็จ! ออเดอร์ #${res.data.orderId}`);
+        alert.success(`สั่งซื้อสำเร็จ! ออเดอร์ #${res.data.orderId}`);
         clearCart();
         setShowCart(false);
         router.push('/orders');
       } else {
-        toast.error(res.msg);
+        alert.error(res.msg);
       }
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
+    } catch { alert.error('เกิดข้อผิดพลาด'); }
     finally { setPlacing(false); }
   };
 
@@ -179,7 +179,7 @@ export default function MenuPage() {
             <ArrowLeft size={18} strokeWidth={2.5} />
           </button>
           <div className="flex gap-2">
-            <button onClick={() => toast.success('ฟังก์ชันค้นหาในเมนูจะเปิดใช้งานเร็วๆ นี้')} className="w-9 h-9 rounded-full bg-white/95 dark:bg-[#1e1e1e]/95 shadow-md flex items-center justify-center text-gray-800 dark:text-gray-200 hover:scale-105 transition-all active:scale-95">
+            <button onClick={() => alert.success('ฟังก์ชันค้นหาในเมนูจะเปิดใช้งานเร็วๆ นี้')} className="w-9 h-9 rounded-full bg-white/95 dark:bg-[#1e1e1e]/95 shadow-md flex items-center justify-center text-gray-800 dark:text-gray-200 hover:scale-105 transition-all active:scale-95">
               <Search size={18} strokeWidth={2.5} />
             </button>
           </div>

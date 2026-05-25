@@ -7,7 +7,7 @@ import { utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, User, Save, LogOut, Eye, EyeOff, AlertTriangle, Download, X, ChevronRight, FileText, Send, Moon, Sun, Type } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 const ISSUE_TYPES = ['เมนูไม่ถูกต้อง', 'ออเดอร์มีปัญหา', 'การชำระเงินผิดพลาด', 'ร้านค้ามีปัญหา', 'ปัญหาด้านระบบ', 'อื่นๆ'];
 
@@ -36,7 +36,7 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+    if (!form.name.trim()) { alert.error('กรุณากรอกชื่อ'); return; }
     const loggedInUser = getPersistedUser();
     if (!loggedInUser) return;
     setSaving(true);
@@ -44,14 +44,14 @@ export default function ProfilePage() {
       const res: any = await utilsApi.saveStudentProfile({ uid: loggedInUser.id, ...form });
       if (res.success) {
         setUser({ ...loggedInUser, name: form.name, nick: form.nick, phone: form.phone, email: form.email });
-        toast.success('บันทึกข้อมูลส่วนตัวเรียบร้อย');
-      } else toast.error(res.msg);
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
+        alert.success('บันทึกข้อมูลส่วนตัวเรียบร้อย');
+      } else alert.error(res.msg);
+    } catch { alert.error('เกิดข้อผิดพลาด'); }
     setSaving(false);
   };
 
   const handleReport = async () => {
-    if (!reportForm.msg.trim()) { toast.error('กรุณาอธิบายปัญหาของคุณ'); return; }
+    if (!reportForm.msg.trim()) { alert.error('กรุณาอธิบายปัญหาของคุณ'); return; }
     const loggedInUser = getPersistedUser();
     if (!loggedInUser) return;
     setReporting(true);
@@ -64,11 +64,11 @@ export default function ProfilePage() {
         contact: reportForm.contact,
       });
       if (res.success) {
-        toast.success('ส่งเรื่องร้องเรียนสำเร็จ ขอบคุณสำหรับข้อมูลครับ!');
+        alert.success('ส่งเรื่องร้องเรียนสำเร็จ ขอบคุณสำหรับข้อมูลครับ!');
         setReportForm({ type: ISSUE_TYPES[0], msg: '', contact: '' });
         setActiveSheet('none');
-      } else toast.error(res.msg);
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
+      } else alert.error(res.msg);
+    } catch { alert.error('เกิดข้อผิดพลาด'); }
     setReporting(false);
   };
 
@@ -85,7 +85,7 @@ export default function ProfilePage() {
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
-    toast.success(theme === 'dark' ? 'เปิดโหมดสว่าง' : 'เปิดโหมดกลางคืน');
+    alert.success(theme === 'dark' ? 'เปิดโหมดสว่าง' : 'เปิดโหมดกลางคืน');
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);
@@ -224,8 +224,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Logout session */}
-        <button onClick={() => { logout(); router.replace('/login'); }}
-          className="w-full bg-white dark:bg-[#1e1e1e] border border-red-200 dark:border-red-950/60 text-red-500 py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-red-55 dark:hover:bg-red-950/25 active:scale-95 transition-all shadow-xs duration-200 cursor-pointer">
+        <button onClick={() => {
+          alert.confirm('ยืนยันออกจากระบบ', 'คุณต้องการออกจากระบบ canteen ใช่หรือไม่?', () => {
+            logout();
+            router.replace('/login');
+          });
+        }}
+          className="w-full bg-white dark:bg-[#1e1e1e] border border-red-200 dark:border-red-955/60 text-red-500 py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-red-55 dark:hover:bg-red-955/25 active:scale-95 transition-all shadow-xs duration-200 cursor-pointer">
           <LogOut size={16} /> ออกจากระบบ canteen
         </button>
       </div>

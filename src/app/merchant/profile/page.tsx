@@ -7,7 +7,7 @@ import { shopsApi, utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { Camera, Save, LogOut, Eye, EyeOff, Clock, ToggleLeft, ToggleRight, Moon, Sun, Type, User } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 export default function MerchantProfilePage() {
   const router = useRouter();
@@ -53,15 +53,15 @@ export default function MerchantProfilePage() {
       const res: any = await shopsApi.saveProfile({ ...form, img: imgUrl });
       if (res.success) {
         setUser({ ...loggedInUser, name: form.name, nick: form.nick, shop: form.shopName, email: form.email });
-        toast.success('บันทึกการตั้งค่าร้านค้าเรียบร้อย');
-      } else toast.error(res.msg);
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
+        alert.success('บันทึกการตั้งค่าร้านค้าเรียบร้อย');
+      } else alert.error(res.msg);
+    } catch { alert.error('เกิดข้อผิดพลาด'); }
     setSaving(false);
   };
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
-    toast.success(theme === 'dark' ? 'เปิดโหมดสว่าง' : 'เปิดโหมดกลางคืน');
+    alert.success(theme === 'dark' ? 'เปิดโหมดสว่าง' : 'เปิดโหมดกลางคืน');
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);
@@ -222,8 +222,13 @@ export default function MerchantProfilePage() {
           <Save size={16} /> {saving ? 'กำลังบันทึกข้อมูล...' : 'บันทึกการตั้งค่าร้านค้าทั้งหมด'}
         </button>
 
-        <button onClick={() => { logout(); router.replace('/login'); }}
-          className="w-full bg-white dark:bg-[#1e1e1e] border-2 border-red-200 dark:border-red-950 text-red-500 py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-95 transition-all shadow-xs duration-200">
+        <button onClick={() => {
+          alert.confirm('ยืนยันออกจากระบบ', 'คุณต้องการออกจากระบบ canteen ใช่หรือไม่?', () => {
+            logout();
+            router.replace('/login');
+          });
+        }}
+          className="w-full bg-white dark:bg-[#1e1e1e] border-2 border-red-200 dark:border-red-955 text-red-500 py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-red-55 dark:hover:bg-red-955/20 active:scale-95 transition-all shadow-xs duration-200 cursor-pointer">
           <LogOut size={16} /> ออกจากระบบ canteen
         </button>
       </div>

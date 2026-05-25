@@ -7,7 +7,7 @@ import { ordersApi, reviewsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Star, ChefHat, X, Store, CreditCard, ChevronRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 const STATUS_MAP: Record<string, { label: string; cls: string; border: string }> = {
   Waiting:   { label: 'รอร้านรับออเดอร์', cls: 'badge-waiting', border: 'border-wait' },
@@ -48,10 +48,11 @@ export default function OrdersPage() {
   };
 
   const handleCancel = async (orderId: string) => {
-    if (!confirm('ยืนยันการยกเลิกออเดอร์ของคุณ?')) return;
-    const res: any = await ordersApi.cancel(orderId);
-    if (res.success) { toast.success('ยกเลิกออเดอร์สำเร็จ'); loadOrders(); }
-    else toast.error(res.msg);
+    alert.confirm('ยืนยันยกเลิกออเดอร์', 'คุณต้องการยกเลิกออเดอร์ของคุณใช่หรือไม่?', async () => {
+      const res: any = await ordersApi.cancel(orderId);
+      if (res.success) { alert.success('ยกเลิกออเดอร์สำเร็จ'); loadOrders(); }
+      else alert.error(res.msg);
+    });
   };
 
   const handleReview = async () => {
@@ -60,8 +61,8 @@ export default function OrdersPage() {
       orderId: reviewModal.id, shop: reviewModal.shop,
       userId: getPersistedUser()?.id || '', rating, comment,
     });
-    if (res.success) { toast.success(res.msg); setReviewModal(null); setRating(5); setComment(''); loadOrders(); }
-    else toast.error(res.msg);
+    if (res.success) { alert.success(res.msg); setReviewModal(null); setRating(5); setComment(''); loadOrders(); }
+    else alert.error(res.msg);
   };
 
   const filtered = filter === 'all' ? orders

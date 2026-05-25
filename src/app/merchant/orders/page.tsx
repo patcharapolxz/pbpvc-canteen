@@ -7,7 +7,7 @@ import { ordersApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { Package, Clock, ChefHat, CheckCircle, XCircle, Phone, Printer } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 const STATUS_MAP: Record<string, { label: string; cls: string; border: string; next?: string; nextLabel?: string }> = {
   Waiting:   { label: 'รอรับออเดอร์', cls: 'badge-waiting',   border: 'border-wait',   next: 'Cooking',   nextLabel: '🍳 รับออเดอร์แล้วทำอาหาร' },
@@ -47,22 +47,23 @@ export default function MerchantOrdersPage() {
   const handleStatus = async (orderId: string, status: string) => {
     const res: any = await ordersApi.updateStatus(orderId, status);
     if (res.success) { 
-      toast.success('อัพเดทสถานะออเดอร์แล้ว'); 
+      alert.success('อัพเดทสถานะออเดอร์แล้ว'); 
       loadOrders(); 
     } else {
-      toast.error(res.msg);
+      alert.error(res.msg);
     }
   };
 
   const handleCancel = async (orderId: string) => {
-    if (!confirm('ยืนยันปฏิเสธหรือยกเลิกออเดอร์นี้หรือไม่?')) return;
-    const res: any = await ordersApi.cancel(orderId);
-    if (res.success) { 
-      toast.success('ยกเลิกออเดอร์สำเร็จ'); 
-      loadOrders(); 
-    } else {
-      toast.error(res.msg);
-    }
+    alert.confirm('ยืนยันยกเลิกออเดอร์', 'คุณต้องการปฏิเสธหรือยกเลิกออเดอร์นี้ใช่หรือไม่?', async () => {
+      const res: any = await ordersApi.cancel(orderId);
+      if (res.success) { 
+        alert.success('ยกเลิกออเดอร์สำเร็จ'); 
+        loadOrders(); 
+      } else {
+        alert.error(res.msg);
+      }
+    });
   };
 
   // 🖨️ Thermal Receipt Printing handler

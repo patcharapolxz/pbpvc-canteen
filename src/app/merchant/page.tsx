@@ -8,7 +8,7 @@ import { menuApi, shopsApi, utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Camera, Sparkles, ChefHat } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 interface MenuItem { id: string; name: string; price: number; cat: string; img: string; status: string; options: any[]; recommend: boolean; }
 
@@ -64,7 +64,7 @@ export default function MerchantPage() {
     const res: any = await shopsApi.toggleStatus(loggedInUser.id, next);
     if (res.success) { 
       setIsOpen(next); 
-      toast.success(next ? 'เปิดหน้าร้านจำหน่ายอาหารแล้ว' : 'ปิดหน้าร้านชั่วคราวแล้ว'); 
+      alert.success(next ? 'เปิดหน้าร้านจำหน่ายอาหารแล้ว' : 'ปิดหน้าร้านชั่วคราวแล้ว'); 
     }
   };
 
@@ -87,8 +87,8 @@ export default function MerchantPage() {
   };
 
   const handleSave = async () => {
-    if (!modal?.name?.trim()) { toast.error('กรุณาระบุชื่อเมนูอาหาร'); return; }
-    if (!modal.price || modal.price <= 0) { toast.error('กรุณาระบุราคาขายที่ถูกต้อง'); return; }
+    if (!modal?.name?.trim()) { alert.error('กรุณาระบุชื่อเมนูอาหาร'); return; }
+    if (!modal.price || modal.price <= 0) { alert.error('กรุณาระบุราคาขายที่ถูกต้อง'); return; }
     const loggedInUser = getPersistedUser();
     if (!loggedInUser) return;
     setSaving(true);
@@ -97,23 +97,24 @@ export default function MerchantPage() {
       if (imgFile) imgUrl = await utilsApi.uploadImage(imgFile, 'food');
       const res: any = await menuApi.save({ ...modal, img: imgUrl, shop: loggedInUser.shop });
       if (res.success) { 
-        toast.success('บันทึกเมนูอาหารสำเร็จ'); 
+        alert.success('บันทึกเมนูอาหารสำเร็จ'); 
         setModal(null); 
         loadData(); 
       } else {
-        toast.error(res.msg);
+        alert.error(res.msg);
       }
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
+    } catch { alert.error('เกิดข้อผิดพลาด'); }
     setSaving(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('ยืนยันลบเมนูอาหารรายการนี้ออกจากระบบหรือไม่?')) return;
-    const res: any = await menuApi.delete(id);
-    if (res.success) { 
-      toast.success('ลบเมนูสำเร็จ'); 
-      loadData(); 
-    }
+    alert.confirm('ยืนยันลบเมนูอาหาร', 'คุณต้องการลบเมนูอาหารรายการนี้ออกจากระบบหรือไม่?', async () => {
+      const res: any = await menuApi.delete(id);
+      if (res.success) { 
+        alert.success('ลบเมนูสำเร็จ'); 
+        loadData(); 
+      }
+    });
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);

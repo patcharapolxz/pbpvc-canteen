@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 import { Eye, EyeOff, LogIn, UserPlus, KeyRound } from 'lucide-react';
 import Image from 'next/image';
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginForm.id || !loginForm.pwd) { toast.error('กรุณากรอกข้อมูลให้ครบ'); return; }
+    if (!loginForm.id || !loginForm.pwd) { alert.error('กรุณากรอกข้อมูลให้ครบ'); return; }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -53,14 +53,14 @@ export default function LoginPage() {
           shop:  data.shop_name || '',
           email: data.email || '',
         });
-        toast.success(`ยินดีต้อนรับ ${data.nickname || data.name}!`);
+        alert.success(`ยินดีต้อนรับ ${data.nickname || data.name}!`);
         const role = data.role;
         router.push(role === 'Admin' ? '/admin' : role === 'Merchant' ? '/merchant' : '/shops');
       } else {
-        toast.error('ID หรือรหัสผ่านไม่ถูกต้อง');
+        alert.error('ID หรือรหัสผ่านไม่ถูกต้อง');
       }
     } catch {
-      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      alert.error('เกิดข้อผิดพลาด กรุณาลองใหม่');
     } finally {
       setLoading(false);
     }
@@ -68,14 +68,14 @@ export default function LoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regForm.id || !regForm.pwd || !regForm.name) { toast.error('กรุณากรอกข้อมูลให้ครบ'); return; }
+    if (!regForm.id || !regForm.pwd || !regForm.name) { alert.error('กรุณากรอกข้อมูลให้ครบ'); return; }
     setLoading(true);
     try {
       // Check if user exists
       const { data: existingUser } = await supabase.from('users').select('id').eq('id', regForm.id).single();
       
       if (existingUser) {
-        toast.error('รหัสนักเรียน/ผู้ใช้นี้ มีในระบบแล้ว');
+        alert.error('รหัสนักเรียน/ผู้ใช้นี้ มีในระบบแล้ว');
         setLoading(false);
         return;
       }
@@ -91,13 +91,13 @@ export default function LoginPage() {
       }]);
 
       if (!error) {
-        toast.success('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+        alert.success('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
         setTab('login');
       } else {
-        toast.error('สมัครไม่สำเร็จ: ' + error.message);
+        alert.error('สมัครไม่สำเร็จ: ' + error.message);
       }
     } catch {
-      toast.error('เกิดข้อผิดพลาด');
+      alert.error('เกิดข้อผิดพลาด');
     } finally {
       setLoading(false);
     }
@@ -115,13 +115,13 @@ export default function LoginPage() {
         .single();
 
       if (data) {
-        toast.success(`รหัสผ่านของคุณคือ: ${data.password}`, { duration: 8000 });
+        alert.success(`รหัสผ่านของคุณคือ: ${data.password}`);
         setTab('login');
       } else {
-        toast.error('ไม่พบข้อมูลที่ตรงกัน');
+        alert.error('ไม่พบข้อมูลที่ตรงกัน');
       }
     } catch {
-      toast.error('เกิดข้อผิดพลาด');
+      alert.error('เกิดข้อผิดพลาด');
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ import { shopsApi, ordersApi, newsApi, notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { Search, Star, Heart, MapPin, Bell, Clock, Utensils, Store, ChefHat, X, Package, CheckCircle, Megaphone } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 interface Shop {
   name: string; img: string; rating: string;
@@ -183,7 +183,7 @@ export default function ShopsPage() {
       : [...favorites, shopName];
     setFavorites(next);
     localStorage.setItem('pbpvc_favs', JSON.stringify(next));
-    toast.success(favorites.includes(shopName) ? 'ยกเลิกถูกใจแล้ว' : 'เพิ่มในรายการโปรดแล้ว');
+    alert.success(favorites.includes(shopName) ? 'ยกเลิกถูกใจแล้ว' : 'เพิ่มในรายการโปรดแล้ว');
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);

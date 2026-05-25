@@ -7,7 +7,7 @@ import { notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import PremiumLoading from '@/components/PremiumLoading';
 import { Bell, BellOff, CheckCheck, Sparkles } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { alert } from '@/lib/alert';
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
     const res: any = await notifApi.markRead(loggedInUser.id);
     if (res.success) {
       setNotifs(notifs.map(n => ({ ...n, is_read: true })));
-      toast.success('ทำเครื่องหมายอ่านการแจ้งเตือนทั้งหมดแล้ว');
+      alert.success('ทำเครื่องหมายอ่านการแจ้งเตือนทั้งหมดแล้ว');
     }
   };
 
