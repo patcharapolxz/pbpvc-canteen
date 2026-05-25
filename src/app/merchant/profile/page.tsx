@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { shopsApi, utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { Camera, Save, LogOut, Eye, EyeOff, Clock, ToggleLeft, ToggleRight, Moon, Sun, Type, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -66,11 +67,7 @@ export default function MerchantProfilePage() {
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#006837] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดการตั้งค่า..." subtext="กรุณารอสักครู่..." />;
   }
 
   return (

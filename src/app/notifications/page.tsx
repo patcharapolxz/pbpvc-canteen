@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { Bell, BellOff, CheckCheck, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -46,11 +47,7 @@ export default function NotificationsPage() {
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#006837] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดการแจ้งเตือน..." subtext="กรุณารอสักครู่..." />;
   }
 
   return (

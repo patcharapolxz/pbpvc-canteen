@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { menuApi, ordersApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, Plus, Minus, Star, X, Trash2, Clock, MapPin, Search, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -136,7 +137,9 @@ export default function MenuPage() {
     finally { setPlacing(false); }
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <PremiumLoading text="กำลังโหลดเมนูอาหาร..." subtext="กรุณารอสักครู่..." />;
+  }
 
   const isBeverage = selectedItem && (selectedItem.cat === 'เครื่องดื่ม' || selectedItem.cat === 'น้ำ' || selectedItem.name.includes('น้ำ') || selectedItem.name.includes('ชา') || selectedItem.name.includes('กาแฟ'));
 

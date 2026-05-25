@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { ordersApi, reviewsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Star, ChefHat, X, Store, CreditCard, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -84,11 +85,7 @@ export default function OrdersPage() {
   };
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#00a568] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดออเดอร์..." subtext="กรุณารอสักครู่..." />;
   }
 
   return (

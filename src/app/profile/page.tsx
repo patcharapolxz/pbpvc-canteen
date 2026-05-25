@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { utilsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { ArrowLeft, User, Save, LogOut, Eye, EyeOff, AlertTriangle, Download, X, ChevronRight, FileText, Send, Moon, Sun, Type } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -90,11 +91,7 @@ export default function ProfilePage() {
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#006837] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดโปรไฟล์..." subtext="กรุณารอสักครู่..." />;
   }
 
   const roleLabel: Record<string, string> = { Student: 'นักเรียน/นักศึกษา', Merchant: 'ผู้ประกอบการร้านอาหาร', Admin: 'ผู้ดูแลระบบส่วนกลาง' };

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { adminApi, newsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { Users, ShoppingBag, TrendingUp, Banknote, Megaphone, AlertTriangle, ShieldCheck, Clock, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -75,11 +76,7 @@ export default function AdminPage() {
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#1e3c72] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดแดชบอร์ด..." subtext="กรุณารอสักครู่..." />;
   }
 
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;

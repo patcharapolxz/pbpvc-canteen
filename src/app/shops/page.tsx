@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { shopsApi, ordersApi, newsApi, notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
+import PremiumLoading from '@/components/PremiumLoading';
 import { Search, Star, Heart, MapPin, Bell, Clock, Utensils, Store, ChefHat, X, Package, CheckCircle, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -167,11 +168,7 @@ export default function ShopsPage() {
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9]">
-        <div className="w-12 h-12 border-4 border-[#00a568] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PremiumLoading text="กำลังโหลดร้านค้า..." subtext="กรุณารอสักครู่..." />;
   }
 
   // Filtered by Favorites if any special tag or search matches
