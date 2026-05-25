@@ -27,6 +27,8 @@ interface AppState {
   user: User | null;
   cart: CartItem[];
   cartShop: string;
+  theme: 'light' | 'dark';
+  fontSize: 'sm' | 'md' | 'lg';
   setUser: (u: User | null) => void;
   logout: () => void;
   addToCart: (item: CartItem, shop: string) => void;
@@ -34,6 +36,8 @@ interface AppState {
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
   cartTotal: () => number;
+  setTheme: (t: 'light' | 'dark') => void;
+  setFontSize: (s: 'sm' | 'md' | 'lg') => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -42,6 +46,8 @@ export const useAppStore = create<AppState>()(
       user: null,
       cart: [],
       cartShop: '',
+      theme: 'light',
+      fontSize: 'md',
 
       setUser: (u) => set({ user: u }),
 
@@ -75,10 +81,30 @@ export const useAppStore = create<AppState>()(
       clearCart: () => set({ cart: [], cartShop: '' }),
 
       cartTotal: () => get().cart.reduce((sum, c) => sum + c.price * c.qty, 0),
+
+      setTheme: (theme) => {
+        set({ theme });
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      },
+
+      setFontSize: (fontSize) => {
+        set({ fontSize });
+        if (typeof document !== 'undefined') {
+          const body = document.body;
+          body.classList.remove('font-sm', 'font-md', 'font-lg');
+          body.classList.add(`font-${fontSize}`);
+        }
+      },
     }),
     {
       name: 'pbpvc-canteen-store',
-      partialize: (state) => ({ user: state.user }),
+      partialize: (state) => ({
+        user: state.user,
+        theme: state.theme,
+        fontSize: state.fontSize,
+      }),
     }
   )
 );
@@ -94,4 +120,3 @@ export const getPersistedUser = (): User | null => {
     return null;
   }
 };
-

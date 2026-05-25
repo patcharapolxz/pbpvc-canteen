@@ -5,239 +5,274 @@ import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
 import { adminApi, newsApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
-import { Users, ShoppingBag, TrendingUp, Banknote, Plus, Pencil, Trash2, X, Megaphone } from 'lucide-react';
+import { Users, ShoppingBag, TrendingUp, Banknote, Megaphone, AlertTriangle, ShieldCheck, Clock, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const ROLES = ['Student', 'Merchant', 'Admin'];
 
 export default function AdminPage() {
   const router = useRouter();
   const { user, logout } = useAppStore();
-  const [tab,    setTab]    = useState<'dashboard'|'users'|'news'>('dashboard');
-  const [stats,  setStats]  = useState<any>(null);
-  const [users,  setUsers]  = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [userModal, setUserModal] = useState<any>(null);
-  const [newsMsg,   setNewsMsg]   = useState('');
+  const [tab, setTab] = useState<'dashboard'|'news'|'reports'>('dashboard');
+  const [stats, setStats] = useState<any>(null);
+  const [reports, setReports] = useState<any[]>([]);
+  const [newsMsg, setNewsMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const loggedInUser = getPersistedUser();
-    if (!loggedInUser || loggedInUser.role !== 'Admin') { router.replace('/login'); return; }
-    adminApi.getStats().then((r: any) => { if (r.success) setStats(r.data); });
-    adminApi.getUsers().then((r: any) => { if (r.success) setUsers(r.data); });
+    if (!loggedInUser || loggedInUser.role !== 'Admin') {
+      router.replace('/login');
+      return;
+    }
+    loadData();
   }, []);
 
-  const handleSaveUser = async () => {
-    if (!userModal?.id || !userModal?.name) { toast.error('กรุณากรอกข้อมูลให้ครบ'); return; }
-    const res: any = await adminApi.saveUser(userModal);
-    if (res.success) { toast.success('บันทึกแล้ว'); setUserModal(null); adminApi.getUsers().then((r: any) => { if (r.success) setUsers(r.data); }); }
-    else toast.error(res.msg);
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm(`ลบผู้ใช้ ${id}?`)) return;
-    const res: any = await adminApi.deleteUser(id);
-    if (res.success) { toast.success('ลบแล้ว'); setUsers(users.filter(u => u.id !== id)); }
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, reportsRes]: any[] = await Promise.all([
+        adminApi.getStats(),
+        adminApi.getReports(),
+      ]);
+      if (statsRes.success) setStats(statsRes.data);
+      if (reportsRes.success) setReports(reportsRes.data || []);
+    } catch {}
+    setLoading(false);
   };
 
   const handlePostNews = async () => {
     if (!newsMsg.trim()) return;
     const res: any = await newsApi.post(newsMsg);
-    if (res.success) { toast.success('โพสต์ข่าวแล้ว'); setNewsMsg(''); }
+    if (res.success) {
+      toast.success('โพสต์ประกาศเรียบร้อย');
+      setNewsMsg('');
+    } else {
+      toast.error(res.msg);
+    }
   };
 
   const handleClearNews = async () => {
     const res: any = await newsApi.clear();
-    if (res.success) toast.success('ลบข่าวแล้ว');
+    if (res.success) {
+      toast.success('ลบประกาศทั้งหมดแล้ว');
+    } else {
+      toast.error(res.msg);
+    }
   };
 
-  const filteredUsers = users.filter(u =>
-    u.id?.includes(search) || u.name?.includes(search) || u.shop?.includes(search));
-
-  const roleColor: Record<string, string> = {
-    Admin: 'bg-red-100 text-red-600', Merchant: 'bg-green-100 text-green-700', Student: 'bg-gray-100 text-gray-500',
+  const handleResolveReport = async (reportId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'Pending' ? 'Resolved' : 'Pending';
+    const res: any = await adminApi.updateReportStatus(reportId, nextStatus);
+    if (res.success) {
+      toast.success(nextStatus === 'Resolved' ? 'ทำเครื่องหมายแก้ไขปัญหาเรียบร้อย' : 'เปิดปัญหาใหม่อีกครั้ง');
+      setReports(reports.map(r => r.id === reportId ? { ...r, status: nextStatus } : r));
+    } else {
+      toast.error(res.msg);
+    }
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);
 
   if (!mounted || !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9]">
-        <div className="w-12 h-12 border-4 border-[#006837] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f4f7f9] dark:bg-[#121212]">
+        <div className="w-12 h-12 border-4 border-[#1e3c72] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
+  const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
+
   return (
-    <div className="min-h-screen bg-[#f4f7f9] pb-nav">
-      {/* Header */}
-      <div className="bg-linear-to-br from-[#1e3c72] to-[#2a5298] text-white px-5 pt-10 pb-[70px] rounded-b-[30px] shadow-[0_4px_15px_rgba(30,60,114,0.2)]">
+    <div className="min-h-screen bg-[#f4f7f9] dark:bg-[#121212] pb-nav">
+      
+      {/* Premium Admin Header */}
+      <div className="bg-gradient-to-br from-[#1e3c72] to-[#2a5298] text-white px-5 pt-8 pb-[60px] rounded-b-[24px] shadow-[0_4px_15px_rgba(30,60,114,0.2)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">Admin Dashboard</h1>
-            <p className="text-white/70 text-sm">{currentUser.name}</p>
+            <h1 className="text-lg font-extrabold flex items-center gap-2 tracking-wide leading-tight">
+              <ShieldCheck size={22} className="text-white" /> ระบบดูแลส่วนกลาง
+            </h1>
+            <p className="text-white/70 text-[11px] font-bold mt-0.5 uppercase tracking-wider">ผู้ดูแล: {currentUser.name}</p>
           </div>
-          <button onClick={() => { logout(); router.replace('/login'); }}
-            className="bg-white/20 text-white text-xs px-3 py-1.5 rounded-full border border-white/30">
-            ออกจากระบบ
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={loadData} className="w-8.5 h-8.5 rounded-xl bg-white/10 flex items-center justify-center text-white cursor-pointer hover:bg-white/20 active:scale-90 transition-all">
+              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button onClick={() => { logout(); router.replace('/login'); }}
+              className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full border border-white/20 transition active:scale-95 cursor-pointer">
+              ออกจากระบบ
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Floating Tabs */}
-      <div className="px-4 -mt-10 relative z-10 mb-4 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2">
-          {[['dashboard','📊 สถิติ'],['users','👥 ผู้ใช้'],['news','📢 ข่าว']].map(([k, label]) => (
+      {/* Segment Tab Controls */}
+      <div className="px-4 -mt-8 relative z-10 mb-5 overflow-x-auto no-scrollbar max-w-2xl mx-auto">
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl p-1.5 shadow-xs flex gap-1 border border-gray-150/40 dark:border-gray-800">
+          {[
+            ['dashboard', '📊 แดชบอร์ดสถิติ'],
+            ['news', '📢 โฆษณาข่าวสาร'],
+            ['reports', `⚠️ ปัญหาและคำร้อง ${pendingReportsCount > 0 ? `(${pendingReportsCount})` : ''}`]
+          ].map(([k, label]) => (
             <button key={k} onClick={() => setTab(k as any)}
-              className={`px-5 py-2.5 rounded-[50px] text-sm font-medium transition-all whitespace-nowrap shadow-sm border ${
-                tab === k ? 'bg-[#1e3c72] text-white border-[#1e3c72]' : 'bg-white text-gray-500 border-gray-100'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                tab === k 
+                  ? 'bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-md' 
+                  : 'bg-transparent text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-850'
+              }`}
+            >
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="px-4 mt-4">
-
+      <div className="px-4 max-w-2xl mx-auto">
+        
         {/* DASHBOARD TAB */}
         {tab === 'dashboard' && (
           <div className="space-y-4 animate-slide-up">
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { icon: Banknote,    color: 'bg-green-50 text-green-600', label: 'ยอดขายรวม',    value: `${Number(stats?.total || 0).toLocaleString()} ฿` },
-                { icon: ShoppingBag, color: 'bg-blue-50 text-blue-600',   label: 'ออเดอร์ทั้งหมด', value: stats?.orders || 0 },
-                { icon: Users,       color: 'bg-purple-50 text-purple-600', label: 'นักเรียน',   value: stats?.users || 0 },
-                { icon: TrendingUp,  color: 'bg-orange-50 text-orange-600', label: 'ร้านค้า',    value: stats?.shops?.length || 0 },
-              ].map(({ icon: Icon, color, label, value }) => (
-                <div key={label} className="bg-white rounded-2xl p-5 shadow-(--card-shadow)">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color} mb-3`}>
-                    <Icon size={22} />
-                  </div>
-                  <p className="text-gray-500 text-xs">{label}</p>
-                  <p className="font-bold text-xl mt-0.5 text-gray-800">{value}</p>
-                </div>
-              ))}
-            </div>
+            
+            {/* Quick Actions Card */}
+            <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-4.5 shadow-xs border border-gray-100/60 dark:border-gray-800 grid grid-cols-2 gap-3">
+              <button onClick={() => router.push('/admin/users')}
+                className="p-4 bg-blue-50/40 hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30 rounded-2xl border border-blue-150/30 dark:border-blue-900/30 flex flex-col items-center justify-center text-center transition active:scale-95 duration-100 cursor-pointer"
+              >
+                <Users size={24} className="text-blue-600 dark:text-blue-400 mb-1.5" />
+                <span className="text-xs font-extrabold text-gray-700 dark:text-gray-250">จัดการบัญชีผู้ใช้งาน</span>
+                <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-0.5 font-bold uppercase tracking-wider">ระบบ CRUD สิทธิ์ <ExternalLink size={8} /></span>
+              </button>
 
-            {/* Shop ranking */}
-            <div className="bg-white rounded-2xl shadow-(--card-shadow) p-5">
-              <h3 className="font-bold text-gray-800 mb-4">🏆 อันดับร้านค้า</h3>
-              {stats?.shops?.map((s: any, i: number) => (
-                <div key={s.shop} className="flex items-center gap-3 py-3 border-b border-dashed border-gray-100 last:border-0">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
-                    i===0?'bg-amber-400':i===1?'bg-gray-400':i===2?'bg-amber-600':'bg-gray-200 text-gray-500!'}`}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm text-gray-800">{s.shop}</p>
-                    <p className="text-xs text-gray-400">{s.orders} ออเดอร์</p>
-                  </div>
-                  <span className="font-bold text-[#006837]">{s.revenue.toLocaleString()} ฿</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* USERS TAB */}
-        {tab === 'users' && (
-          <div className="space-y-3 animate-slide-up">
-            <div className="flex gap-2">
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="ค้นหา ID, ชื่อ, ร้าน..."
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1e3c72]/30" />
-              <button onClick={() => setUserModal({ id:'', pwd:'', name:'', nick:'', phone:'', role:'Student', shop:'', email:'' })}
-                className="w-12 h-12 bg-[#1e3c72] text-white rounded-xl flex items-center justify-center shrink-0">
-                <Plus size={20} />
+              <button onClick={() => router.push('/admin/orders')}
+                className="p-4 bg-green-50/40 hover:bg-green-50 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30 rounded-2xl border border-green-150/30 dark:border-emerald-900/30 flex flex-col items-center justify-center text-center transition active:scale-95 duration-100 cursor-pointer"
+              >
+                <ShoppingBag size={24} className="text-green-600 dark:text-green-400 mb-1.5" />
+                <span className="text-xs font-extrabold text-gray-700 dark:text-gray-250">ประวัติออเดอร์ทั้งหมด</span>
+                <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-0.5 font-bold uppercase tracking-wider">ตรวจสอบใบเสร็จ <ExternalLink size={8} /></span>
               </button>
             </div>
-            {filteredUsers.map(u => (
-              <div key={u.id} className={`bg-white rounded-2xl shadow-(--card-shadow) p-4 flex items-center gap-3 border-l-4 ${
-                u.role==='Admin'?'border-red-400':u.role==='Merchant'?'border-green-500':'border-gray-300'}`}>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-sm">{u.name}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColor[u.role]}`}>{u.role}</span>
+
+            {/* Core Stats Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: Banknote, color: 'bg-green-50 text-green-600 dark:bg-green-950/30 dark:text-green-400', label: 'ยอดขายรวมสะสมในระบบ', value: `${Number(stats?.total || 0).toLocaleString()} ฿` },
+                { icon: ShoppingBag, color: 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400', label: 'คำสั่งซื้อสะสมรวม', value: stats?.orders || 0 },
+                { icon: Users, color: 'bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400', label: 'สมาชิกในระบบทั้งหมด', value: stats?.users || 0 },
+                { icon: TrendingUp, color: 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400', label: 'ร้านค้าที่เปิดบริการ', value: stats?.shops?.length || 0 },
+              ].map(({ icon: Icon, color, label, value }) => (
+                <div key={label} className="bg-white dark:bg-[#1e1e1e] rounded-2xl p-5 border border-gray-100/60 dark:border-gray-800 shadow-xs">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} mb-3`}>
+                    <Icon size={20} />
                   </div>
-                  <p className="text-xs text-gray-400">ID: {u.id} {u.shop && `• ${u.shop}`}</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-[10px] font-extrabold uppercase tracking-wider">{label}</p>
+                  <p className="font-black text-lg mt-0.5 text-gray-800 dark:text-gray-200">{value}</p>
                 </div>
-                <div className="flex gap-1.5">
-                  <button onClick={() => setUserModal({ ...u })}
-                    className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <Pencil size={14} />
-                  </button>
-                  <button onClick={() => handleDeleteUser(u.id)}
-                    className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Shop Leaderboard */}
+            <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-5 border border-gray-100/60 dark:border-gray-800 shadow-xs">
+              <h3 className="font-extrabold text-xs text-gray-400 dark:text-gray-500 mb-4 flex items-center gap-1.5 uppercase tracking-wider">🏆 อันดับยอดขายสะสมของแต่ละร้าน</h3>
+              {stats?.shops?.length === 0 ? (
+                <p className="text-center py-6 text-gray-400 dark:text-gray-500 text-xs font-bold">ยังไม่มีข้อมูลรายการสั่งซื้อในระบบ</p>
+              ) : (
+                stats?.shops?.map((s: any, i: number) => (
+                  <div key={s.shop} className="flex items-center gap-3 py-3.5 border-b border-dashed border-gray-100 dark:border-gray-800 last:border-0">
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0 ${
+                      i === 0 ? 'bg-amber-400 shadow-xs' : i === 1 ? 'bg-gray-400' : i === 2 ? 'bg-amber-600' : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
+                    }`}>
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-extrabold text-xs text-gray-800 dark:text-gray-200 truncate">{s.shop}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold mt-0.5">ยอดขาย {s.orders} รายการ</p>
+                    </div>
+                    <span className="font-black text-[#006837] dark:text-[#00a568] text-sm shrink-0">{s.revenue.toLocaleString()} ฿</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
         {/* NEWS TAB */}
         {tab === 'news' && (
           <div className="space-y-4 animate-slide-up">
-            <div className="bg-white rounded-2xl shadow-(--card-shadow) p-5">
-              <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><Megaphone size={18} />โพสต์ข่าว</h3>
-              <textarea value={newsMsg} onChange={e => setNewsMsg(e.target.value)}
-                placeholder="พิมพ์ข่าวประชาสัมพันธ์..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none resize-none mb-3" rows={4} />
+            <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-5 border border-gray-100/60 dark:border-gray-800 shadow-xs">
+              <h3 className="font-extrabold text-xs text-gray-450 dark:text-gray-500 mb-3.5 flex items-center gap-2 uppercase tracking-wider">
+                <Megaphone size={16} className="text-[#1e3c72] dark:text-blue-400" /> ประกาศข่าวประชาสัมพันธ์/ประกาศแจ้งเตือน
+              </h3>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold mb-3">เมื่อบันทึกข้อความแล้ว แบนเนอร์สีเหลืองวิ่งแจ้งเตือนจะเปิดแสดงทันทีในหน้าแรกของนักเรียน/ลูกค้า</p>
+              <textarea
+                value={newsMsg}
+                onChange={e => setNewsMsg(e.target.value)}
+                placeholder="ป้อนข่าวหรือประชาสัมพันธ์โรงอาหารที่ต้องการเปิดเผยต่อสมาชิกทุกคนในระบบ..."
+                className="w-full px-4 py-3 rounded-2xl border border-gray-250 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-xs outline-none resize-none mb-4 focus:ring-2 focus:ring-[#1e3c72]/30 font-bold dark:text-gray-200 leading-relaxed"
+                rows={4}
+              />
               <div className="flex gap-2">
-                <button onClick={handlePostNews} className="flex-1 bg-[#1e3c72] text-white py-3 rounded-xl font-semibold text-sm">
-                  📢 โพสต์ข่าว
+                <button onClick={handlePostNews} className="flex-1 bg-gradient-to-r from-[#1e3c72] to-[#2a5298] hover:opacity-95 text-white py-3.5 rounded-xl font-extrabold text-xs shadow-md transition active:scale-95 duration-100 cursor-pointer">
+                  📢 อัปเดตประกาศข่าวสาร
                 </button>
-                <button onClick={handleClearNews} className="flex-1 bg-red-50 text-red-500 py-3 rounded-xl font-semibold text-sm border border-red-200">
-                  🗑️ ลบข่าว
+                <button onClick={handleClearNews} className="flex-1 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-950/30 py-3.5 rounded-xl font-extrabold text-xs border border-red-200 dark:border-red-900/50 transition active:scale-95 duration-100 cursor-pointer">
+                  🗑️ ซ่อนและล้างประกาศ
                 </button>
               </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* User Modal */}
-      {userModal && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setUserModal(null)} />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-5 py-4 flex items-center justify-between border-b z-10">
-              <h3 className="font-bold text-lg">{userModal.id && users.find(u=>u.id===userModal.id) ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}</h3>
-              <button onClick={() => setUserModal(null)}><X size={22} className="text-gray-400" /></button>
-            </div>
-            <div className="px-5 py-4 space-y-3">
-              {[
-                { k:'id',    label:'รหัส ID *',    type:'text',     ph:'66001' },
-                { k:'pwd',   label:'รหัสผ่าน *',   type:'password', ph:'••••' },
-                { k:'name',  label:'ชื่อ-นามสกุล *', type:'text', ph:'' },
-                { k:'nick',  label:'ชื่อเล่น',       type:'text', ph:'' },
-                { k:'phone', label:'เบอร์โทร',       type:'tel',  ph:'' },
-                { k:'email', label:'อีเมล',          type:'email', ph:'' },
-                { k:'shop',  label:'ชื่อร้าน (Merchant)', type:'text', ph:'' },
-              ].map(({ k, label, type, ph }) => (
-                <div key={k}>
-                  <label className="text-sm font-medium text-gray-600 mb-1 block">{label}</label>
-                  <input type={type} value={userModal[k] || ''} onChange={e => setUserModal({...userModal, [k]: e.target.value})}
-                    placeholder={ph}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-[#1e3c72]/30" />
-                </div>
-              ))}
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">Role</label>
-                <select value={userModal.role} onChange={e => setUserModal({...userModal, role: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none">
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
+        {/* REPORTS TAB */}
+        {tab === 'reports' && (
+          <div className="space-y-3.5 animate-slide-up">
+            {reports.length === 0 ? (
+              <div className="text-center py-20 bg-white dark:bg-[#1e1e1e] rounded-3xl border border-gray-150/40 dark:border-gray-800 shadow-sm">
+                <AlertTriangle size={48} className="mx-auto mb-3 opacity-20 text-gray-400" />
+                <p className="font-extrabold text-gray-400 text-xs uppercase tracking-wide">ยังไม่ได้รับแจ้งปัญหาหรือข้อเสนอแนะใดๆ</p>
               </div>
-              <button onClick={handleSaveUser} className="btn-primary">บันทึก</button>
-            </div>
+            ) : (
+              reports.map(report => {
+                const isPending = report.status === 'Pending';
+                return (
+                  <div key={report.id} className={`bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-xs p-4 border border-gray-100/60 dark:border-gray-800/80 border-l-4 ${isPending ? 'border-l-orange-500' : 'border-l-green-500'}`}>
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <div>
+                        <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
+                          isPending ? 'bg-orange-50 text-orange-600 border border-orange-200/50 dark:bg-orange-950/20 dark:text-orange-400' : 'bg-green-50 text-green-600 border border-green-200/50 dark:bg-green-950/20 dark:text-green-400'
+                        }`}>
+                          {report.type}
+                        </span>
+                        <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1 font-bold">
+                          <Clock size={9} /> {report.created_at ? new Date(report.created_at).toLocaleString('th-TH') : ''}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleResolveReport(report.id, report.status)}
+                        className={`text-[10px] font-extrabold px-3 py-1.5 rounded-lg active:scale-95 transition cursor-pointer shrink-0 ${
+                          isPending ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        {isPending ? 'ทำเครื่องหมายเสร็จสิ้น' : 'เปิดปัญหาใหม่อีกครั้ง'}
+                      </button>
+                    </div>
+
+                    <div className="mt-2.5 bg-gray-50 dark:bg-gray-900/60 rounded-xl p-3 border border-gray-100/50 dark:border-gray-800">
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-bold leading-relaxed">{report.message}</p>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">
+                      <span>ผู้แจ้ง: <span className="text-gray-600 dark:text-gray-400 font-black">{report.name} (ID: {report.user_id})</span></span>
+                      {report.contact && <span>ติดต่อกลับ: <span className="text-gray-600 dark:text-gray-400 font-black">{report.contact}</span></span>}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <BottomNav />
     </div>

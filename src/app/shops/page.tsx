@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore, getPersistedUser } from '@/lib/store';
-import { shopsApi, ordersApi } from '@/lib/api';
+import { shopsApi, ordersApi, newsApi, notifApi } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
-import { Search, Star, Heart, MapPin, Bell, Clock, Utensils, Store, ChefHat, X, Package, CheckCircle } from 'lucide-react';
+import { Search, Star, Heart, MapPin, Bell, Clock, Utensils, Store, ChefHat, X, Package, CheckCircle, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Shop {
@@ -14,9 +14,9 @@ interface Shop {
 }
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  Waiting:   { label: 'รอร้านรับ', cls: 'bg-[#ffa700] text-white font-bold text-[11px] px-2.5 py-1 rounded-md shadow-sm' },
-  Cooking:   { label: 'กำลังทำ',  cls: 'bg-[#0288d1] text-white font-bold text-[11px] px-2.5 py-1 rounded-md shadow-sm' },
-  Ready:     { label: 'เสร็จแล้ว', cls: 'bg-[#00a568] text-white font-bold text-[11px] px-2.5 py-1 rounded-md shadow-sm' },
+  Waiting:   { label: 'รอร้านรับ', cls: 'badge-waiting' },
+  Cooking:   { label: 'กำลังปรุง',  cls: 'badge-cooking' },
+  Ready:     { label: 'พร้อมเสิร์ฟ', cls: 'badge-ready' },
 };
 
 const getProgressDetails = (status: string) => {
@@ -37,9 +37,14 @@ export default function ShopsPage() {
   const [loading,  setLoading]  = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [news,     setNews]     = useState<any[]>([]);
+
+  // Scroll states for Compact Header
+  const [isCompact, setIsCompact] = useState(false);
 
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   // Drag states for Bottom Sheet
   const [startY, setStartY] = useState<number | null>(null);
@@ -71,7 +76,20 @@ export default function ShopsPage() {
     setCurrentY(0);
   }, [isDragging, currentY]);
 
-  // Hook global move/end events for robust mouse dragging
+  // Handle Scroll to toggle Compact Mode
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setIsCompact(true);
+      } else {
+        setIsCompact(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Hook global move/end events for robust dragging
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('touchmove', handleDragMove, { passive: false });
@@ -97,21 +115,31 @@ export default function ShopsPage() {
       if (r.success) { setShops(r.data); setFiltered(r.data); }
       setLoading(false);
     }).catch(() => setLoading(false));
+
+    // Load News Announcements
+    newsApi.getAll().then((r: any) => {
+      if (r.success) setNews(r.data || []);
+    });
     
     const saved = localStorage.getItem('pbpvc_favs');
     if (saved) setFavorites(JSON.parse(saved));
 
-    // Load Active Orders
-    const loadOrders = async () => {
+    // Load Active Orders & Notifications count
+    const loadOrdersAndNotifs = async () => {
       try {
         const res: any = await ordersApi.get(loggedInUser.role, loggedInUser.id);
         if (res.success) {
           setActiveOrders(res.data.filter((o: any) => ['Waiting','Cooking','Ready'].includes(o.status)));
         }
+        const notifRes: any = await notifApi.get(loggedInUser.id);
+        if (notifRes.success) {
+          const unread = (notifRes.data || []).filter((n: any) => !n.is_read).length;
+          setUnreadNotifs(unread);
+        }
       } catch {}
     };
-    loadOrders();
-    const interval = setInterval(loadOrders, 10000);
+    loadOrdersAndNotifs();
+    const interval = setInterval(loadOrdersAndNotifs, 10000);
     return () => clearInterval(interval);
   }, [router]);
 
@@ -120,17 +148,19 @@ export default function ShopsPage() {
     const lq = q.toLowerCase();
     setFiltered(shops.filter(s =>
       s.name.toLowerCase().includes(lq) ||
-      s.tags.toLowerCase().includes(lq) ||
-      s.menuSearch.toLowerCase().includes(lq)
+      (s.tags || '').toLowerCase().includes(lq) ||
+      (s.menuSearch || '').toLowerCase().includes(lq)
     ));
   }, [shops]);
 
-  const toggleFav = (shopName: string) => {
+  const toggleFav = (e: React.MouseEvent, shopName: string) => {
+    e.stopPropagation();
     const next = favorites.includes(shopName)
       ? favorites.filter(f => f !== shopName)
       : [...favorites, shopName];
     setFavorites(next);
     localStorage.setItem('pbpvc_favs', JSON.stringify(next));
+    toast.success(favorites.includes(shopName) ? 'ยกเลิกถูกใจแล้ว' : 'เพิ่มในรายการโปรดแล้ว');
   };
 
   const currentUser = user || (mounted ? getPersistedUser() : null);
@@ -143,125 +173,194 @@ export default function ShopsPage() {
     );
   }
 
+  // Filtered by Favorites if any special tag or search matches
+  const sortedShops = [...filtered].sort((a, b) => {
+    const aFav = favorites.includes(a.name) ? 1 : 0;
+    const bFav = favorites.includes(b.name) ? 1 : 0;
+    return bFav - aFav; // Show favorites first
+  });
+
   return (
-    <div className="min-h-screen relative pb-[80px] overflow-x-hidden bg-[#f4f7f9]">
-      {/* Crisp Background Image (No blur) */}
+    <div className="min-h-screen relative pb-nav overflow-x-hidden bg-[#f4f7f9] dark:bg-[#121212]">
+      {/* Background image blur overlay */}
       <div 
-        className="fixed inset-0 z-0 bg-cover bg-center"
+        className="fixed inset-0 z-0 bg-cover bg-center opacity-30 dark:opacity-10"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1565895405139-e188df996e0b?auto=format&fit=crop&w=1000&q=80')" }}
       />
-      <div className="fixed inset-0 z-0 bg-white/40" />
 
       <div className="relative z-10">
-        {/* Header */}
-        <div className="bg-[#00a568] text-white pt-6 pb-6 px-4 md:px-6 rounded-b-[24px] shadow-md">
-          {/* Top Bar */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex gap-2 items-center">
-              <img src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" alt="logo" className="w-10 h-10 rounded-full border-2 border-white/50 shadow-sm" />
-              <div>
-                <h1 className="text-lg font-extrabold leading-tight tracking-wide">PBPVC Canteen</h1>
-                <div className="flex items-center gap-1 opacity-90 mt-0.5">
-                  <MapPin size={11} className="text-[#f1c40f]" />
-                  <p className="text-[11px] font-medium">โรงอาหารวิทยาลัยอาชีวศึกษาเพชรบุรี</p>
-                </div>
+        
+        {/* News Announcement Ticker Banner */}
+        {news.length > 0 && (
+          <div className="bg-[#ffeeba] text-[#856404] py-2.5 px-4 font-bold text-xs sticky top-0 z-50 shadow-sm border-b border-[#ffe39a] flex items-center gap-2 overflow-hidden shrink-0">
+            <Megaphone size={14} className="animate-bounce text-[#b58900] shrink-0" />
+            <div className="w-full overflow-hidden whitespace-nowrap relative">
+              <div className="inline-block animate-[marquee_20s_linear_infinite] hover:[animation-play-state:paused]">
+                {news.map((n, idx) => (
+                  <span key={idx} className="mr-16">📢 {n.message}</span>
+                ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Dynamic Compact Header (LINE MAN style) */}
+        <div 
+          className={`sticky bg-gradient-to-b from-[#36c990] to-[#00a568] text-white z-40 transition-all duration-300 shadow-md ${
+            news.length > 0 ? 'top-8' : 'top-0'
+          } ${
+            isCompact 
+              ? 'py-3.5 px-4 rounded-b-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.1)]' 
+              : 'pt-6 pb-6 px-4 md:px-6 rounded-b-[25px] shadow-[0_4px_15px_rgba(0,165,104,0.2)]'
+          }`}
+        >
+          {/* Top Row */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-2.5 items-center min-w-0">
+              <img src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" alt="logo" className="w-9 h-9 rounded-full border-2 border-white/50 shadow-sm shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-base font-extrabold leading-tight tracking-wide truncate">PBPVC Canteen</h1>
+                {!isCompact && (
+                  <div className="flex items-center gap-1 opacity-90 mt-0.5 animate-fade-in">
+                    <MapPin size={10} className="text-[#f1c40f]" />
+                    <p className="text-[10px] font-medium truncate">วิทยาลัยอาชีวศึกษาเพชรบุรี</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Header controls */}
             <div className="flex gap-2">
-              <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors"><Heart size={15} /></button>
-              <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors"><Bell size={15} /></button>
-              <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors"><Clock size={15} /></button>
+              <button onClick={() => toast.success(`ชื่นชอบร้านโปรดได้ง่ายๆ เพียงกดไอคอนหัวใจ`)}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors">
+                <Heart size={14} className="text-white" />
+              </button>
+              <button onClick={() => router.push('/notifications')}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors relative cursor-pointer">
+                <Bell size={14} />
+                {unreadNotifs > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                    {unreadNotifs}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Greeting */}
-          <div className="flex items-end justify-between mb-3 px-1">
-            <h2 className="text-xl font-bold">สวัสดี {currentUser.nick || currentUser.name}</h2>
-            <p className="text-[13px] font-bold opacity-90 cursor-pointer hover:underline">หิวหรือยัง? สั่งเลย</p>
-          </div>
+          {/* Welcome User greeting - visible only when NOT compact */}
+          {!isCompact && (
+            <div className="flex items-end justify-between mb-3 px-1 animate-fade-in">
+              <div>
+                <h2 className="text-lg font-bold">สวัสดี {currentUser.nick || currentUser.name} 👋</h2>
+                <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">หิวหรือยัง? เลือกสั่งอาหารโปรดได้เลย</p>
+              </div>
+            </div>
+          )}
 
-          {/* Search */}
-          <div className="bg-white rounded-full flex items-center px-4 py-3 text-gray-800 shadow-sm transition-shadow focus-within:shadow-md">
-            <Search size={18} className="text-gray-400 mr-2 shrink-0" />
+          {/* Search bar */}
+          <div className="bg-white rounded-full flex items-center px-4 py-2.5 text-gray-800 shadow-sm transition-shadow focus-within:shadow-md">
+            <Search size={16} className="text-gray-400 mr-2 shrink-0" />
             <input type="text" value={query} onChange={(e) => handleSearch(e.target.value)}
-              placeholder="ค้นหาร้าน, เมนูอาหาร..."
-              className="flex-1 bg-transparent outline-none text-[13px] font-medium placeholder-gray-400 min-w-0" />
+              placeholder="ค้นหาร้านค้า หรือรายการอาหาร..."
+              className="flex-1 bg-transparent outline-none text-xs font-semibold placeholder-gray-400 min-w-0" />
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="px-4 md:px-6 mt-4 space-y-4 max-w-7xl mx-auto mb-8">
+        <div className="px-4 md:px-6 mt-4 space-y-4 max-w-7xl mx-auto mb-8 relative z-10">
           
-          {/* Track Order Banner */}
+          {/* Active Orders Tracker Banner */}
           {activeOrders.length > 0 && (
             <div 
-              className="bg-white/95 backdrop-blur-md rounded-xl border border-[#00a568] p-3.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all animate-fade-in" 
+              className="bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md rounded-2xl border-2 border-[#00a568] p-3.5 flex items-center justify-between shadow-md cursor-pointer hover:shadow-lg transition-all animate-bounce" 
               onClick={() => setShowOrdersModal(true)}
             >
               <div className="flex items-center gap-3">
-                <Utensils className="text-[#00a568]" size={20} />
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-[#00a568]">
+                  <Utensils size={18} />
+                </div>
                 <div>
-                  <p className="text-[13px] font-bold text-gray-800">ติดตามออเดอร์</p>
-                  <p className="text-[11px] text-gray-500 font-medium">กำลังดำเนินการ...</p>
+                  <p className="text-xs font-extrabold text-gray-800 dark:text-gray-200">ติดตามอาหารของคุณ</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">คลิกเพื่อดูความคืบหน้า...</p>
                 </div>
               </div>
-              <span className="bg-[#dc3545] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
-                {activeOrders.length} รายการ
+              <span className="bg-[#dc3545] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-sm">
+                {activeOrders.length} ออเดอร์
               </span>
             </div>
           )}
 
-          {/* Shop list */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {/* Favorites Header if any exists */}
+          {favorites.length > 0 && (
+            <h3 className="font-extrabold text-xs text-gray-400 uppercase tracking-wider mb-2 px-1">💖 ร้านโปรดของคุณ</h3>
+          )}
+
+          {/* Shop List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white/90 rounded-xl p-3 flex gap-3 shadow-sm border border-white/50">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-gray-200 animate-pulse shrink-0" />
+                <div key={i} className="bg-white dark:bg-[#1e1e1e] rounded-2xl p-4 flex gap-3 shadow-sm border border-gray-100 dark:border-gray-800">
+                  <div className="w-[75px] h-[75px] rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse shrink-0" />
                   <div className="flex-1 space-y-2 py-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
-                    <div className="h-2 bg-gray-200 rounded w-1/3 animate-pulse" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 animate-pulse" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2 animate-pulse" />
+                    <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded w-1/3 animate-pulse" />
                   </div>
                 </div>
               ))
-            ) : filtered.length === 0 ? (
-              <div className="col-span-full text-center py-16 bg-white/80 backdrop-blur-md rounded-2xl border border-white/50">
-                <p className="text-5xl">🔍</p>
-                <p className="mt-3 font-bold text-gray-600">ไม่พบร้านที่ค้นหา</p>
+            ) : sortedShops.length === 0 ? (
+              <div className="col-span-full text-center py-20 bg-white/90 dark:bg-[#1e1e1e]/90 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm">
+                <Store size={48} className="mx-auto mb-3 opacity-30 text-gray-400" />
+                <p className="font-bold text-gray-500">ไม่พบร้านค้าที่ตรงกับการค้นหา</p>
               </div>
-            ) : filtered.map((shop) => (
-              <div key={shop.name}
-                className="bg-white/95 backdrop-blur-md rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex items-center gap-3 p-3 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all border border-white/50"
-                onClick={() => router.push(`/menu/${encodeURIComponent(shop.name)}`)}>
-                
-                <div className="relative w-[70px] h-[70px] shrink-0">
-                  <div className={`w-full h-full rounded-[10px] overflow-hidden bg-gray-100 shadow-inner ${!shop.isOpen ? 'grayscale opacity-70' : ''}`}>
-                    {shop.img 
-                      ? <img src={shop.img} alt={shop.name} className="w-full h-full object-cover" /> 
-                      : <div className="w-full h-full flex items-center justify-center text-2xl bg-emerald-50">🍽️</div>
-                    }
+            ) : (
+              sortedShops.map((shop) => {
+                const isFav = favorites.includes(shop.name);
+                return (
+                  <div key={shop.name}
+                    className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm flex items-center gap-3.5 p-3.5 cursor-pointer hover:shadow-md active:scale-[0.98] transition-all border border-gray-100/60 dark:border-gray-800/60 relative group"
+                    onClick={() => router.push(`/menu/${encodeURIComponent(shop.name)}`)}>
+                    
+                    <div className="relative w-[75px] h-[75px] shrink-0">
+                      <div className={`w-full h-full rounded-[14px] overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-inner ${!shop.isOpen ? 'grayscale opacity-60' : ''}`}>
+                        {shop.img 
+                          ? <img src={shop.img} alt={shop.name} className="w-full h-full object-cover" /> 
+                          : <div className="w-full h-full flex items-center justify-center text-2xl bg-emerald-50 dark:bg-emerald-950">🍽️</div>
+                        }
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-extrabold text-gray-800 dark:text-gray-200 text-sm truncate">{shop.name}</h3>
+                        <button 
+                          onClick={(e) => toggleFav(e, shop.name)}
+                          className="text-gray-300 hover:text-red-500 transition-colors shrink-0 ml-0.5 p-0.5"
+                        >
+                          <Heart size={14} className={isFav ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600'} />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star size={11} className="text-amber-400 fill-amber-400" />
+                        <span className="text-[11px] font-extrabold text-gray-700 dark:text-gray-300">{shop.rating}</span>
+                        {shop.reviews > 0 && (
+                          <span className="text-[10px] text-gray-400 font-medium">({shop.reviews} รีวิว)</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 truncate font-semibold">{shop.tags || 'ของคาว, อาหารจานเดียว'}</p>
+                    </div>
+                    
+                    {!shop.isOpen && (
+                      <div className="shrink-0 pl-1">
+                        <span className="bg-gray-400 text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                          <Store size={9} /> ร้านปิด
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                
-                <div className="flex-1 min-w-0 py-1">
-                  <h3 className="font-bold text-gray-800 text-[14px] truncate">{shop.name}</h3>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Star size={11} className="text-[#f1c40f] fill-[#f1c40f]" />
-                    <span className="text-[11px] font-extrabold text-gray-800">{shop.rating}</span>
-                    <span className="text-[10px] text-gray-400 font-medium">({shop.reviews})</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1 truncate font-medium">{shop.tags}</p>
-                </div>
-                
-                {!shop.isOpen && (
-                  <div className="shrink-0 pl-1">
-                    <span className="bg-gray-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                      <Store size={10} /> ร้านปิด
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -269,9 +368,9 @@ export default function ShopsPage() {
       {/* Orders Bottom Sheet Modal */}
       {showOrdersModal && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] transition-opacity" onClick={() => setShowOrdersModal(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setShowOrdersModal(false)} />
           <div 
-            className="relative bg-[#f8f9fa] rounded-t-[28px] w-full max-h-[90vh] flex flex-col shadow-2xl animate-slide-up"
+            className="relative bg-[#f8f9fa] dark:bg-[#121212] rounded-t-[28px] w-full max-h-[90vh] flex flex-col shadow-2xl animate-slide-up"
             style={{
               transform: `translateY(${currentY}px)`,
               transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -280,20 +379,20 @@ export default function ShopsPage() {
             
             {/* Draggable Header Section */}
             <div 
-              className="cursor-grab active:cursor-grabbing select-none shrink-0 bg-white rounded-t-[28px] touch-none"
+              className="cursor-grab active:cursor-grabbing select-none shrink-0 bg-white dark:bg-[#1e1e1e] rounded-t-[28px] touch-none"
               onTouchStart={handleDragStart} 
               onMouseDown={handleDragStart}
             >
               {/* Drag Handle */}
               <div className="w-full flex justify-center pt-3 pb-1">
-                <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
+                <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full" />
               </div>
-
+ 
               {/* Modal Header */}
-              <div className="px-5 py-4 bg-white flex items-center justify-between shadow-[0_2px_10px_rgba(0,0,0,0.02)] z-10">
+              <div className="px-5 py-4 bg-white dark:bg-[#1e1e1e] flex items-center justify-between shadow-xs z-10 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <ChefHat className="text-[#00a568]" size={22} />
-                  <h1 className="text-base font-extrabold text-gray-800">ออเดอร์ที่กำลังทำ</h1>
+                  <h1 className="text-base font-extrabold text-gray-800 dark:text-gray-200">ความคืบหน้าออเดอร์</h1>
                 </div>
                 <button 
                   onClick={() => setShowOrdersModal(false)}
@@ -309,7 +408,7 @@ export default function ShopsPage() {
             {/* Scrollable Orders Content */}
             <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
               {activeOrders.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                <div className="text-center py-12 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-100 dark:border-gray-800">
                   <Package size={48} className="mx-auto mb-3 text-gray-300" />
                   <p className="font-bold text-gray-500 text-sm">ไม่มีออเดอร์ที่กำลังดำเนินการ</p>
                 </div>
@@ -318,14 +417,14 @@ export default function ShopsPage() {
                 const { pct, p1, p2, p3 } = getProgressDetails(order.status);
                 
                 return (
-                  <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div key={order.id} className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs overflow-hidden">
                     {/* Top Row */}
                     <div className="px-5 pt-4 pb-3 flex items-start justify-between">
                       <div className="flex gap-2 items-start">
-                        <Store size={18} className="text-gray-700 mt-0.5" />
+                        <Store size={18} className="text-gray-700 dark:text-gray-300 mt-0.5" />
                         <div>
-                          <h3 className="font-bold text-[14px] text-gray-800 leading-tight">{order.shop}</h3>
-                          <p className="text-[11px] text-gray-400 font-bold mt-0.5">#{order.id}</p>
+                          <h3 className="font-extrabold text-sm text-gray-800 dark:text-gray-200 leading-tight">{order.shop}</h3>
+                          <p className="text-[10px] text-gray-400 font-bold mt-0.5">#{order.id.slice(-6)}</p>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -334,54 +433,54 @@ export default function ShopsPage() {
                       </div>
                     </div>
 
-                    {/* Timeline Progress */}
-                    <div className="relative flex items-center justify-between my-2 px-10">
-                      <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-[3.5px] bg-gray-100 rounded-full z-0" />
-                      <div className="absolute left-10 top-1/2 -translate-y-1/2 h-[3.5px] bg-[#ffa700] rounded-full z-0 transition-all duration-500" style={{ width: `calc(${pct} - 20px)` }} />
+                    {/* Timeline Progress Tracker */}
+                    <div className="relative flex items-center justify-between my-2 px-12">
+                      <div className="absolute left-12 right-12 top-1/2 -translate-y-1/2 h-[3.5px] bg-gray-100 dark:bg-gray-800 rounded-full z-0" />
+                      <div className="absolute left-12 top-1/2 -translate-y-1/2 h-[3.5px] bg-[#00a568] rounded-full z-0 transition-all duration-500" style={{ width: `calc(${pct} - 24px)` }} />
                       
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p1 ? 'bg-white border-[#ffa700] text-[#ffa700] shadow-sm' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <Store size={13} />
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p1 ? 'bg-white dark:bg-gray-900 border-[#00a568] text-[#00a568] shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
+                        <Store size={14} />
                       </div>
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p2 ? 'bg-white border-[#ffa700] text-[#ffa700] shadow-sm' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <Clock size={13} />
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p2 ? 'bg-white dark:bg-gray-900 border-[#00a568] text-[#00a568] shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
+                        <Clock size={14} />
                       </div>
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p3 ? 'bg-[#00a568] border-[#00a568] text-white shadow-sm' : 'bg-white border-gray-200 text-gray-300'}`}>
-                        <CheckCircle size={13} />
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 transition-all ${p3 ? 'bg-[#00a568] border-[#00a568] text-white shadow-xs' : 'bg-white border-gray-200 text-gray-300'}`}>
+                        <CheckCircle size={14} />
                       </div>
                     </div>
 
                     {/* Items Details */}
                     <div className="px-5 py-2">
-                      <div className="bg-[#f8f9fa] rounded-xl px-4 py-3 space-y-2">
-                        {order.items?.map((item: any, i: number) => (
-                          <div key={i} className="flex justify-between items-center text-[13px] py-1 border-b border-dashed border-gray-200/60 last:border-0">
+                      <div className="bg-[#f8f9fa] dark:bg-gray-900 rounded-xl px-4 py-3 space-y-2">
+                        {(order.items || []).map((item: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-dashed border-gray-200 dark:border-gray-800 last:border-0">
                             <div>
-                              <span className="font-extrabold text-gray-800">{item.name}</span>
-                              {order.note && <p className="text-[11px] text-gray-400 mt-0.5">💡 {order.note}</p>}
+                              <span className="font-extrabold text-gray-800 dark:text-gray-200">{item.name}</span>
+                              {order.note && <p className="text-[10px] text-gray-400 mt-0.5">💡 {order.note}</p>}
                             </div>
-                            <span className="font-bold text-gray-800">x{item.qty}</span>
+                            <span className="font-bold text-gray-800 dark:text-gray-200">x{item.qty}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="px-5 py-3.5 border-t border-gray-50 flex items-center justify-between">
+                    <div className="px-5 py-3.5 border-t border-gray-50 dark:border-gray-800/50 flex items-center justify-between">
                       <div>
-                        {order.slip === 'QR_PAYMENT' ? (
-                          <span className="bg-[#00a568] text-white px-2.5 py-1 rounded-md text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">✔ จ่ายแล้ว (QR)</span>
+                        {order.slip_url !== 'เงินสด' ? (
+                          <span className="bg-[#e8f5e9] text-[#2e7d32] border border-[#66bb6a] px-2.5 py-1 rounded-md text-[9px] font-bold inline-flex items-center gap-1 shadow-xs">📱 โอนเงิน (QR)</span>
                         ) : (
-                          <span className="bg-[#ffa700] text-white px-2.5 py-1 rounded-md text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">💵 จ่ายเงินสด</span>
+                          <span className="bg-[#fff8e1] text-[#f57c00] border border-[#ffb300] px-2.5 py-1 rounded-md text-[9px] font-bold inline-flex items-center gap-1 shadow-xs">💵 ชำระเงินสด</span>
                         )}
                       </div>
-                      <span className="text-[15px] font-extrabold text-[#00a568]">{Number(order.total).toLocaleString()} ฿</span>
+                      <span className="text-sm font-extrabold text-[#00a568]">{Number(order.total).toLocaleString()} ฿</span>
                     </div>
                   </div>
                 );
               })}
             </div>
-            {/* Spacer for bottom nav if needed */}
-            <div className="h-4 shrink-0 bg-[#f8f9fa]" />
+            
+            <div className="h-4 shrink-0 bg-[#f8f9fa] dark:bg-[#121212]" />
           </div>
         </div>
       )}
@@ -390,4 +489,3 @@ export default function ShopsPage() {
     </div>
   );
 }
-

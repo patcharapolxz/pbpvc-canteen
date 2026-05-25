@@ -35,7 +35,7 @@ export default function BottomNav() {
   const navItems = user.role === 'Admin' ? adminNav : user.role === 'Merchant' ? merchantNav : studentNav;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-t-2xl">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-gray-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] rounded-t-2xl">
       <div className="flex justify-around items-center py-2 px-2 max-w-lg mx-auto">
         {navItems.map(({ icon: Icon, label, href }) => {
           const active = pathname === href || pathname.startsWith(href + '/');
@@ -43,15 +43,17 @@ export default function BottomNav() {
             <button
               key={href}
               onClick={() => router.push(href)}
-              className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-                active ? 'text-[#006837]' : 'text-gray-400 hover:text-gray-600'
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+                active 
+                  ? 'text-[#006837] dark:text-[#00c97e]' 
+                  : 'text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400'
               }`}
             >
-              <span className={`transition-transform ${active ? 'scale-110' : ''}`}>
+              <span className={`transition-transform duration-200 ${active ? 'scale-110' : ''}`}>
                 <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
               </span>
-              <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>{label}</span>
-              {active && <span className="w-1 h-1 bg-[#006837] rounded-full" />}
+              <span className={`text-[9px] font-bold tracking-wide ${active ? 'text-[#006837] dark:text-[#00c97e]' : ''}`}>{label}</span>
+              {active && <span className="w-1 h-1 bg-[#006837] dark:bg-[#00c97e] rounded-full" />}
             </button>
           );
         })}

@@ -23,11 +23,15 @@ export const viewport: Viewport = {
   themeColor: '#006837',
 };
 
+import ThemeInitializer from '@/components/ThemeInitializer';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th" className={kanit.variable}>
       <body className="font-kanit">
+        <ThemeInitializer />
         {children}
+        <div id="print-area" className="hidden print:block"></div>
         <Toaster
           position="top-center"
           toastOptions={{

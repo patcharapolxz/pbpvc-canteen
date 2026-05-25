@@ -6,14 +6,39 @@
     --primary-light: #00a568;
     --primary-dark:  #004d28;
     --bg-main:       #f4f7f9;
+    --bg-card:       #ffffff;
+    --text-main:     #2c3e50;
+    --text-muted:    #6c757d;
+    --border-color:  #eeeeee;
     --card-shadow:   0 8px 24px -6px rgba(0,0,0,0.08);
+
+    /* Status Colors 2024 Redesign */
+    --status-wait-bg: #fff8e1; --status-wait-text: #f57c00; --status-wait-border: #ffb300;
+    --status-cook-bg: #e3f2fd; --status-cook-text: #1976d2; --status-cook-border: #42a5f5;
+    --status-ready-bg: #e8f5e9; --status-ready-text: #2e7d32; --status-ready-border: #66bb6a;
+    --status-cancel-bg: #ffebee; --status-cancel-text: #c62828; --status-cancel-border: #ef5350;
+  }
+
+  [data-theme="dark"] {
+    --bg-main:       #121212;
+    --bg-card:       #1e1e1e;
+    --text-main:     #e0e0e0;
+    --text-muted:    #a0a0a0;
+    --border-color:  #333333;
+    --primary:       #00a568;
   }
 
   html, body {
-    @apply bg-[#f4f7f9] text-gray-800;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
     font-family: var(--font-kanit), 'Kanit', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.3s, color 0.3s;
   }
+
+  body.font-sm { font-size: 14px; }
+  body.font-md { font-size: 16px; }
+  body.font-lg { font-size: 18px; }
 
   * { box-sizing: border-box; }
 }
@@ -21,33 +46,119 @@
 @layer utilities {
   .font-kanit { font-family: var(--font-kanit), 'Kanit', sans-serif; }
 
-  /* Primary button */
+  /* Premium buttons */
   .btn-primary {
-    @apply bg-[#006837] text-white rounded-full py-3 px-6 font-semibold
-           transition-all active:scale-95 hover:bg-[#00a568]
-           shadow-[0_4px_12px_rgba(0,104,55,0.3)] w-full;
+    @apply text-white rounded-full py-3 px-6 font-semibold
+           transition-all active:scale-95 duration-200
+           shadow-[0_4px_12px_rgba(0,104,55,0.3)] w-full text-center cursor-pointer;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+  }
+  .btn-primary:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
   }
 
   /* Glass card */
   .glass-card {
-    @apply bg-white/95 rounded-2xl shadow-(--card-shadow) border border-white;
+    background-color: var(--bg-card) !important;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
   }
 
   /* Bottom nav height offset */
   .pb-nav { padding-bottom: 90px; }
 
-  /* Status badges */
-  .badge-waiting   { @apply bg-amber-50  text-amber-600  border border-amber-300  rounded-full px-3 py-1 text-xs font-semibold; }
-  .badge-cooking   { @apply bg-blue-50   text-blue-600   border border-blue-300   rounded-full px-3 py-1 text-xs font-semibold; }
-  .badge-ready     { @apply bg-green-50  text-green-700  border border-green-400  rounded-full px-3 py-1 text-xs font-semibold; }
-  .badge-completed { @apply bg-gray-100  text-gray-500   border border-gray-300   rounded-full px-3 py-1 text-xs font-semibold; }
-  .badge-cancelled { @apply bg-red-50    text-red-600    border border-red-300    rounded-full px-3 py-1 text-xs font-semibold; }
+  /* 2024 Order Status Badges */
+  .badge-waiting   { background-color: var(--status-wait-bg) !important; color: var(--status-wait-text) !important; border: 1px solid var(--status-wait-border) !important; @apply rounded-full px-2.5 py-0.5 text-[10px] font-extrabold; }
+  .badge-cooking   { background-color: var(--status-cook-bg) !important; color: var(--status-cook-text) !important; border: 1px solid var(--status-cook-border) !important; @apply rounded-full px-2.5 py-0.5 text-[10px] font-extrabold; }
+  .badge-ready     { background-color: var(--status-ready-bg) !important; color: var(--status-ready-text) !important; border: 1px solid var(--status-ready-border) !important; @apply rounded-full px-2.5 py-0.5 text-[10px] font-extrabold; }
+  .badge-completed { @apply bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold; }
+  .badge-cancelled { background-color: var(--status-cancel-bg) !important; color: var(--status-cancel-text) !important; border: 1px solid var(--status-cancel-border) !important; @apply rounded-full px-2.5 py-0.5 text-[10px] font-extrabold; }
 
   /* Skeleton */
   .skeleton {
-    @apply bg-gray-200 rounded-lg animate-pulse;
+    @apply bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse;
+  }
+
+  /* ── Order Ticket V2 (Student/Merchant Order Cards) ─────────────────── */
+  .order-ticket-v2 {
+    @apply bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100/50 dark:border-gray-800/70 border-l-4 overflow-hidden;
+  }
+  .ticket-v2-header {
+    @apply px-5 pt-4 pb-3 bg-white dark:bg-[#1e1e1e];
+  }
+  .ticket-v2-footer {
+    @apply border-t border-gray-100/70 dark:border-gray-800/50;
+  }
+  .cust-box-v2 {
+    @apply mx-5 my-2 px-4 py-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100/40 dark:border-emerald-900/30;
+  }
+  .cust-icon-circle {
+    @apply bg-gradient-to-br from-[#006837] to-[#00a568] text-white;
+  }
+  .item-list-v2 {
+    @apply px-5 pb-3;
+  }
+
+  /* Status Left Border Colors */
+  .border-wait   { border-left-color: #ffb300 !important; }
+  .border-cook   { border-left-color: #42a5f5 !important; }
+  .border-ready  { border-left-color: #66bb6a !important; }
+  .border-cancel { border-left-color: #ef5350 !important; }
+}
+
+/* --- THERMAL PRINTER PRINTING STYLES --- */
+@media print {
+  body * {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+  }
+  
+  .no-print, .modal, .modal-backdrop, nav, header {
+    display: none !important;
+  }
+
+  #print-area, #print-area * {
+    visibility: visible;
+    height: auto;
+    overflow: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+    z-index: 99999;
+  }
+
+  @page {
+    margin: 0;
+    size: auto;
   }
 }
+
+/* Receipt Thermal Printer Box */
+.receipt-box {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  font-family: 'Courier New', monospace;
+  padding: 15px 5px;
+  background: white;
+  color: black;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.rec-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+.rec-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.rec-total { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin-top: 10px; text-align: right; font-weight: bold; font-size: 16px; }
+.rec-footer { text-align: center; font-size: 10px; margin-top: 20px; font-weight: bold; }
 
 /* Smooth scroll */
 html { scroll-behavior: smooth; }
@@ -56,23 +167,26 @@ html { scroll-behavior: smooth; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Slide-up animation */
+/* Animations */
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 .animate-slide-up { animation: slideUp 0.35s ease forwards; }
 
-/* Fade in */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
 
-/* Zoom in */
 @keyframes zoomIn {
   from { transform: scale(0.92); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
 .animate-zoom-in { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes marquee {
+  0%   { transform: translate3d(100%, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}

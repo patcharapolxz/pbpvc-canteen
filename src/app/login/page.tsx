@@ -43,7 +43,16 @@ export default function LoginPage() {
         .single();
 
       if (data) {
-        setUser(data);
+        // Map DB columns → User interface (nickname→nick, shop_name→shop)
+        setUser({
+          id:    data.id,
+          name:  data.name,
+          nick:  data.nickname || '',
+          phone: data.phone || '',
+          role:  data.role,
+          shop:  data.shop_name || '',
+          email: data.email || '',
+        });
         toast.success(`ยินดีต้อนรับ ${data.nickname || data.name}!`);
         const role = data.role;
         router.push(role === 'Admin' ? '/admin' : role === 'Merchant' ? '/merchant' : '/shops');
