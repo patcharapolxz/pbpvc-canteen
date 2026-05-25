@@ -409,9 +409,9 @@ export default function ShopsPage() {
       {/* Orders Bottom Sheet Modal (ออเดอร์ที่กำลังทำ) */}
       {showOrdersModal && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setShowOrdersModal(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" onClick={() => setShowOrdersModal(false)} />
           <div 
-            className="relative bg-[#f8f9fa] dark:bg-[#121212] rounded-t-[28px] w-full max-h-[90vh] flex flex-col shadow-2xl animate-slide-up"
+            className="relative bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl rounded-t-[32px] w-full max-h-[90vh] flex flex-col shadow-[0_-15px_40px_rgba(0,0,0,0.2)] border-t border-white/20 dark:border-white/5 animate-slide-up"
             style={{
               transform: `translateY(${currentY}px)`,
               transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -420,28 +420,29 @@ export default function ShopsPage() {
             
             {/* Draggable Header Section */}
             <div 
-              className="cursor-grab active:cursor-grabbing select-none shrink-0 bg-white dark:bg-[#1e1e1e] rounded-t-[28px] touch-none"
+              className="cursor-grab active:cursor-grabbing select-none shrink-0 bg-white/90 dark:bg-[#1e1e1e]/90 rounded-t-[32px] touch-none"
               onTouchStart={handleDragStart} 
               onMouseDown={handleDragStart}
             >
-              {/* Drag Handle */}
-              <div className="w-full flex justify-center pt-3 pb-1">
-                <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full" />
+              {/* Drag Handle & Instruction */}
+              <div className="w-full flex flex-col items-center pt-3.5 pb-1 gap-1">
+                <div className="w-14 h-1.5 bg-gray-250 dark:bg-gray-700 rounded-full" />
+                <span className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest animate-pulse">ปัดลงเพื่อปิด</span>
               </div>
   
               {/* Modal Header (ตรงภาพเป๊ะๆ) */}
-              <div className="px-5 py-4 bg-white dark:bg-[#1e1e1e] flex items-center justify-between z-10 border-b border-gray-100 dark:border-gray-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">📗</span>
-                  <h1 className="text-sm font-extrabold text-gray-800 dark:text-gray-200">ออเดอร์ที่กำลังทำ</h1>
+              <div className="px-5 py-4 bg-white/95 dark:bg-[#1e1e1e]/95 flex items-center justify-between z-10 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">📗</span>
+                  <h1 className="text-[15px] font-black text-gray-800 dark:text-gray-100 tracking-tight">ออเดอร์ที่กำลังทำ</h1>
                 </div>
                 <button 
                   onClick={() => setShowOrdersModal(false)}
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <X size={20} strokeWidth={2.5} />
+                  <X size={18} strokeWidth={3} />
                 </button>
               </div>
             </div>
@@ -541,24 +542,24 @@ export default function ShopsPage() {
 
       {/* Favorites Modal (ร้านที่คุณถูกใจ - ตรงตามรูปภาพเป๊ะๆ) */}
       {showFavoritesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs select-none">
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl w-full max-w-[340px] shadow-2xl overflow-hidden animate-zoom-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none">
+          <div className="bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl rounded-[28px] w-full max-w-[340px] shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden border border-white/20 dark:border-white/5 animate-zoom-in">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-[#1e1e1e]">
-              <div className="flex items-center gap-1.5">
+            <div className="px-5 py-4.5 border-b border-gray-150/40 dark:border-gray-800/80 flex items-center justify-between bg-white/90 dark:bg-[#1e1e1e]/90">
+              <div className="flex items-center gap-2">
                 <span className="text-red-500 text-lg">❤️</span>
                 <h3 className="font-extrabold text-sm text-gray-800 dark:text-gray-150">ร้านที่คุณถูกใจ</h3>
               </div>
               <button 
                 onClick={() => setShowFavoritesModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <X size={18} strokeWidth={2.5} />
+                <X size={16} strokeWidth={3} />
               </button>
             </div>
 
             {/* List */}
-            <div className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[320px] overflow-y-auto">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800/50 max-h-[320px] overflow-y-auto">
               {favorites.length === 0 ? (
                 <div className="text-center py-12 p-6 text-gray-400">
                   <p className="text-xs font-bold">ไม่มีร้านค้าที่คุณถูกใจ</p>
@@ -574,10 +575,10 @@ export default function ShopsPage() {
                         setShowFavoritesModal(false);
                         router.push(`/menu/${encodeURIComponent(favName)}`);
                       }}
-                      className="px-4 py-3 flex items-center gap-3.5 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
+                      className="px-4 py-3.5 flex items-center gap-3.5 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 cursor-pointer transition-all active:scale-[0.98] duration-150"
                     >
                       {/* Image */}
-                      <div className="w-[54px] h-[54px] rounded-lg overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800 bg-gray-50">
+                      <div className="w-[54px] h-[54px] rounded-xl overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800 bg-gray-50 relative">
                         {shopData?.img 
                           ? (
                             <Image 
@@ -585,7 +586,7 @@ export default function ShopsPage() {
                               alt={favName} 
                               width={54} 
                               height={54} 
-                              className="w-full h-full object-cover" 
+                              className="w-full h-full object-cover animate-fade-in" 
                             />
                           ) : <div className="w-full h-full flex items-center justify-center text-lg bg-emerald-50">🍽️</div>
                         }
@@ -601,7 +602,7 @@ export default function ShopsPage() {
                       </div>
 
                       {/* Arrow */}
-                      <span className="text-gray-300 dark:text-gray-600 text-sm shrink-0">
+                      <span className="text-gray-300 dark:text-gray-600 text-xs shrink-0 font-bold">
                         &gt;
                       </span>
                     </div>

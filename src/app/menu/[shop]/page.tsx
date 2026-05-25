@@ -310,8 +310,8 @@ export default function MenuPage() {
       {/* Options Modifier Bottom Sheet Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in" onClick={() => setSelectedItem(null)} />
-          <div className="relative bg-white dark:bg-[#1e1e1e] rounded-t-[28px] w-full max-h-[85vh] flex flex-col shadow-2xl animate-slide-up border-t border-white/10">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-fade-in" onClick={() => setSelectedItem(null)} />
+          <div className="relative bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl rounded-t-[32px] w-full max-h-[85vh] flex flex-col shadow-[0_-15px_40px_rgba(0,0,0,0.2)] animate-slide-up border-t border-white/20 dark:border-white/5">
             
             {/* Header */}
             <div className="px-5 py-4.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
@@ -329,57 +329,72 @@ export default function MenuPage() {
               
               {/* Size Options (ธรรมดา / พิเศษ) */}
               <div className="opt-group">
-                <h3 className="opt-title text-gray-800 dark:text-gray-200">
+                <h3 className="opt-title text-sm font-extrabold text-gray-800 dark:text-gray-200 flex items-center gap-1.5 mb-2.5">
                   <span>เลือกขนาด</span>
-                  <span className="text-[10px] bg-red-50 text-red-500 font-extrabold px-2 py-0.5 rounded">จำเป็น</span>
+                  <span className="text-[9px] bg-red-100 text-red-600 dark:bg-red-955 dark:text-red-400 font-black px-2 py-0.5 rounded-md">จำเป็น</span>
                 </h3>
-                <div className="space-y-3 mt-2.5">
-                  <label className="flex items-center justify-between py-1 cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="size" checked={sizeOption === 'normal'} onChange={() => setSizeOption('normal')} className="w-4.5 h-4.5 text-[#006837] border-gray-300 focus:ring-[#006837] accent-[#006837]" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">ธรรมดา</span>
-                    </div>
-                    <span className="text-xs font-bold text-gray-400">+฿0</span>
-                  </label>
-                  <label className="flex items-center justify-between py-1 cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="size" checked={sizeOption === 'extra'} onChange={() => setSizeOption('extra')} className="w-4.5 h-4.5 text-[#006837] border-gray-300 focus:ring-[#006837] accent-[#006837]" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">พิเศษ</span>
-                    </div>
-                    <span className="text-xs font-bold text-[#006837] dark:text-[#00a568]">+฿10</span>
-                  </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => setSizeOption('normal')}
+                    className={`p-3.5 rounded-xl border-2 text-xs font-extrabold flex flex-col items-center justify-center gap-1 transition-all ${
+                      sizeOption === 'normal'
+                        ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/60'
+                    }`}
+                  >
+                    <span className="text-[13px]">🍜 ธรรมดา</span>
+                    <span className="text-[9px] opacity-75">+฿0</span>
+                  </button>
+                  <button onClick={() => setSizeOption('extra')}
+                    className={`p-3.5 rounded-xl border-2 text-xs font-extrabold flex flex-col items-center justify-center gap-1 transition-all ${
+                      sizeOption === 'extra'
+                        ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs'
+                        : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/60'
+                    }`}
+                  >
+                    <span className="text-[13px]">🍲 พิเศษ</span>
+                    <span className="text-[9px] text-[#006837] dark:text-[#00a568] font-bold">+฿10</span>
+                  </button>
                 </div>
               </div>
 
               {/* Egg Options (ไข่ดาว / ไข่เจียว) - Skip for drinks */}
               {!isBeverage && (
                 <div className="opt-group">
-                  <h3 className="opt-title text-gray-800 dark:text-gray-200">
+                  <h3 className="opt-title text-sm font-extrabold text-gray-800 dark:text-gray-200 flex items-center gap-1.5 mb-2.5">
                     <span>เครื่องเคียงเพิ่มเติม</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-500 font-bold px-2 py-0.5 rounded">เลือกได้</span>
+                    <span className="text-[9px] bg-gray-100 dark:bg-gray-800 dark:text-gray-400 text-gray-500 font-extrabold px-2 py-0.5 rounded-md">เลือกได้</span>
                   </h3>
-                  <div className="space-y-3 mt-2.5">
-                    <label className="flex items-center justify-between py-1 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <input type="radio" name="egg" checked={eggOption === 'none'} onChange={() => setEggOption('none')} className="w-4.5 h-4.5 text-[#006837] accent-[#006837]" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">ไม่รับไข่เพิ่มเติม</span>
-                      </div>
-                      <span className="text-xs font-bold text-gray-400">+฿0</span>
-                    </label>
-                    <label className="flex items-center justify-between py-1 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <input type="radio" name="egg" checked={eggOption === 'fried'} onChange={() => setEggOption('fried')} className="w-4.5 h-4.5 text-[#006837] accent-[#006837]" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">เพิ่มไข่ดาว</span>
-                      </div>
-                      <span className="text-xs font-bold text-[#006837] dark:text-[#00a568]">+฿10</span>
-                    </label>
-                    <label className="flex items-center justify-between py-1 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <input type="radio" name="egg" checked={eggOption === 'omelette'} onChange={() => setEggOption('omelette')} className="w-4.5 h-4.5 text-[#006837] accent-[#006837]" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">เพิ่มไข่เจียว</span>
-                      </div>
-                      <span className="text-xs font-bold text-[#006837] dark:text-[#00a568]">+฿10</span>
-                    </label>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <button onClick={() => setEggOption('none')}
+                      className={`p-3 rounded-xl border-2 text-xs font-extrabold flex flex-col items-center justify-center gap-1.5 transition-all ${
+                        eggOption === 'none'
+                          ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs'
+                          : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/60'
+                      }`}
+                    >
+                      <span className="text-[12px]">❌ ไม่ใส่ไข่</span>
+                      <span className="text-[9px] opacity-75">+฿0</span>
+                    </button>
+                    <button onClick={() => setEggOption('fried')}
+                      className={`p-3 rounded-xl border-2 text-xs font-extrabold flex flex-col items-center justify-center gap-1.5 transition-all ${
+                        eggOption === 'fried'
+                          ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs'
+                          : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/60'
+                      }`}
+                    >
+                      <span className="text-[12px]">🍳 เพิ่มไข่ดาว</span>
+                      <span className="text-[9px]">+฿10</span>
+                    </button>
+                    <button onClick={() => setEggOption('omelette')}
+                      className={`p-3 rounded-xl border-2 text-xs font-extrabold flex flex-col items-center justify-center gap-1.5 transition-all ${
+                        eggOption === 'omelette'
+                          ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs'
+                          : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900/60'
+                      }`}
+                    >
+                      <span className="text-[12px]">🍳 เพิ่มไข่เจียว</span>
+                      <span className="text-[9px]">+฿10</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -387,19 +402,19 @@ export default function MenuPage() {
               {/* Sweetness Options (only for drinks) */}
               {isBeverage && (
                 <div className="opt-group">
-                  <h3 className="opt-title text-gray-800 dark:text-gray-200">
-                    <span>เลือกระดับความหวาน</span>
-                    <span className="text-[10px] bg-red-50 text-red-500 font-extrabold px-2 py-0.5 rounded">จำเป็น</span>
+                  <h3 className="opt-title text-sm font-extrabold text-gray-800 dark:text-gray-200 flex items-center gap-1.5 mb-2.5">
+                    <span>ระดับความหวาน</span>
+                    <span className="text-[9px] bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400 font-black px-2 py-0.5 rounded-md">จำเป็น</span>
                   </h3>
-                  <div className="grid grid-cols-4 gap-2.5 mt-2.5">
+                  <div className="grid grid-cols-4 gap-2.5">
                     {['ไม่หวานเลย', 'หวานน้อย', 'หวานปกติ', 'หวานมาก'].map((swLabel, index) => {
                       const swVal = ['0%', '50%', '100%', '120%'][index];
                       return (
                         <button key={swVal} onClick={() => setSweetness(swVal)}
-                          className={`py-2 rounded-xl text-[11px] font-extrabold border transition-all text-center ${
+                          className={`py-3 rounded-xl text-xs font-extrabold border-2 transition-all text-center ${
                             sweetness === swVal 
-                              ? 'border-[#006837] bg-[#006837]/5 text-[#006837]' 
-                              : 'border-gray-200 text-gray-500 dark:border-gray-800'
+                              ? 'border-[#00a568] bg-[#00a568]/5 text-[#00a568] shadow-xs' 
+                              : 'border-gray-200 dark:border-gray-800 text-gray-550 hover:bg-gray-50'
                           }`}
                         >
                           <div>{swLabel}</div>
@@ -413,17 +428,17 @@ export default function MenuPage() {
 
               {/* Custom Note input */}
               <div className="pt-1">
-                <h3 className="opt-title text-gray-800 dark:text-gray-200">คำสั่งพิเศษเพิ่มเติม</h3>
+                <h3 className="opt-title text-sm font-extrabold text-gray-800 dark:text-gray-200 mb-2">คำสั่งพิเศษเพิ่มเติม (ถ้ามี)</h3>
                 <input type="text" value={customNote} onChange={e => setCustomNote(e.target.value)}
                   placeholder="เช่น เผ็ดน้อย, แยกน้ำซุป, ไข่ดาวสุกๆ..."
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs outline-none focus:ring-2 focus:ring-[#006837]/20 placeholder-gray-400 font-medium" />
+                  className="w-full px-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-255 dark:border-gray-800 text-xs outline-none focus:ring-2 focus:ring-[#006837]/20 placeholder-gray-400 font-semibold" />
               </div>
             </div>
 
             {/* Confirm Add Button */}
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] shrink-0 pb-safe">
+            <div className="p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] shrink-0 pb-safe">
               <button onClick={handleAddWithModifiers}
-                className="w-full bg-gradient-to-r from-[#006837] to-[#00a568] hover:bg-[#008a47] text-white font-extrabold text-sm py-3.5 rounded-xl shadow-[0_6px_15px_rgba(0,104,55,0.25)] active:scale-[0.97] transition-all flex justify-center items-center gap-2"
+                className="w-full bg-gradient-to-r from-[#006837] to-[#00a568] hover:scale-[1.01] active:scale-[0.98] text-white font-extrabold text-sm py-4 rounded-xl shadow-[0_6px_20px_rgba(0,104,55,0.25)] transition-all flex justify-center items-center gap-2"
               >
                 <span>ใส่ตะกร้า</span>
                 <span className="w-1.5 h-1.5 bg-white/40 rounded-full" />
@@ -438,13 +453,13 @@ export default function MenuPage() {
       {/* Cart Sheet Modal */}
       {showCart && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-fade-in" onClick={() => setShowCart(false)} />
-          <div className="relative bg-white dark:bg-[#1e1e1e] rounded-t-[28px] w-full max-h-[85vh] flex flex-col shadow-2xl animate-slide-up border-t border-white/10">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity animate-fade-in" onClick={() => setShowCart(false)} />
+          <div className="relative bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl rounded-t-[32px] w-full max-h-[85vh] flex flex-col shadow-[0_-15px_40px_rgba(0,0,0,0.15)] animate-slide-up border-t border-white/20 dark:border-white/5">
             
             {/* Header */}
             <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
               <h2 className="font-extrabold text-xl text-gray-850 dark:text-gray-100">รายการในตระกร้า</h2>
-              <button onClick={() => setShowCart(false)} className="w-8 h-8 bg-gray-100 dark:bg-gray-850 rounded-full flex items-center justify-center text-gray-500">
+              <button onClick={() => setShowCart(false)} className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-500">
                 <X size={18} strokeWidth={3} />
               </button>
             </div>
@@ -453,8 +468,16 @@ export default function MenuPage() {
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {currentCart.map(item => (
                 <div key={item.id} className="flex items-start gap-3.5 border-b border-gray-50 dark:border-gray-800/40 pb-4 last:border-0">
-                  <div className="w-16 h-16 rounded-[12px] bg-gray-100 dark:bg-gray-900 overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800">
-                     {item.img ? <img src={item.img} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-xl">🍲</div>}
+                  <div className="w-16 h-16 rounded-[12px] bg-gray-100 dark:bg-gray-900 overflow-hidden shrink-0 border border-gray-100 dark:border-gray-800 relative">
+                     {item.img ? (
+                       <Image 
+                         src={item.img} 
+                         alt={item.name} 
+                         width={64} 
+                         height={64} 
+                         className="w-full h-full object-cover" 
+                       />
+                     ) : <div className="w-full h-full flex items-center justify-center text-xl">🍲</div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-extrabold text-gray-800 dark:text-gray-200 text-sm truncate">{item.name}</p>
