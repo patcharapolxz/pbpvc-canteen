@@ -1389,9 +1389,62 @@ body {
     .btn-success i {
         color: #ffffff !important;
     }
+
+    /* PREMIUM LOADING SCREEN */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes ping-custom {
+        75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    @keyframes pulse-custom {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+    }
+    @keyframes bounce-custom {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+    .animate-spin-custom {
+        animation: spin 1s linear infinite !important;
+    }
+    .animate-ping-custom {
+        animation: ping-custom 1.5s cubic-bezier(0, 0, 0.2, 1) infinite !important;
+    }
+    .animate-pulse-custom {
+        animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+    }
+    .dot-bounce {
+        width: 6px;
+        height: 6px;
+        animation: bounce-custom 1.4s infinite ease-in-out both;
+    }
   </style>
 </head>
 <body>
+<div id="premium-loading-screen" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center bg-black bg-opacity-40 animate__animated animate__fadeIn" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 20000;">
+  <div class="bg-white rounded-5 p-4 text-center border shadow-lg animate__animated animate__zoomIn" style="max-width: 320px; width: 90%; border-radius: 32px; background: rgba(255,255,255,0.95); border-color: rgba(255,255,255,0.2) !important;">
+    <div class="position-relative mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 110px; height: 110px;">
+      <!-- Pulsing Outer Glow -->
+      <div class="position-absolute w-100 h-100 rounded-circle bg-success bg-opacity-10 animate-ping-custom"></div>
+      <!-- Spinning Emerald Ring -->
+      <div class="position-absolute w-100 h-100 rounded-circle border border-4 border-success border-top-transparent animate-spin-custom" style="border-top-color: var(--primary-color) !important;"></div>
+      <!-- Logo in the center -->
+      <div class="rounded-circle bg-white d-flex align-items-center justify-content-center p-2 shadow-sm" style="width: 84px; height: 84px; overflow: hidden; z-index: 10;">
+        <img src="https://yt3.googleusercontent.com/XB0JxhuEvnPiHwnQvPBZYcLaOyBLG897mi9fo7Y_H19bs1-Fbt2s92L2AWEYgxjK7acnC54RZA=s900-c-k-c0x00ffffff-no-rj" class="rounded-circle w-100 h-100 animate-pulse-custom" style="object-fit: cover;" alt="PBPVC Logo">
+      </div>
+    </div>
+    <h5 class="fw-bold mt-2 mb-1 text-dark" style="font-family: 'Kanit', sans-serif;">กรุณารอสักครู่</h5>
+    <p class="text-muted small fw-bold tracking-wider uppercase mb-3" style="font-family: 'Kanit', sans-serif;">กำลังเข้าสู่ระบบ...</p>
+    <div class="d-flex justify-content-center gap-1 mt-2">
+      <span class="dot-bounce bg-success rounded-circle" style="animation-delay: -0.32s;"></span>
+      <span class="dot-bounce bg-success rounded-circle" style="animation-delay: -0.16s;"></span>
+      <span class="dot-bounce bg-success rounded-circle"></span>
+    </div>
+  </div>
+</div>
+
 <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
   <div class="bg-canteen"></div>
@@ -3598,30 +3651,20 @@ body {
 
     class UI {
       toggle(view) { ['form-login','form-reg','form-forgot'].forEach(id => document.getElementById(id).style.display = 'none'); document.getElementById('form-'+view).style.display = 'block'; }
-      loading(show) {
+      loading(show, text = 'กำลังเข้าสู่ระบบ...') {
+          const el = document.getElementById('premium-loading-screen');
+          if (!el) {
+              if (show) Swal.showLoading(); else Swal.close();
+              return;
+          }
           if (show) {
-              // ดึงรูปร้าน หรือรูปผู้ใช้มาแสดง (ถ้าไม่มีใช้รูป Default)
-              const imgUrl = (app.user && app.user.img) ? app.user.img : 'https://lh3.googleusercontent.com/d/1SnDdKPPXjKc1Ndy5AWyF8n9R5FgExknL';
-              
-              Swal.fire({
-                  html: `
-                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
-                        <div class="position-relative mb-3">
-                            <div class="spinner-border text-success" style="width: 5rem; height: 5rem; position: absolute; top: -5px; left: -5px;" role="status"></div>
-                            <img src="${imgUrl}" class="rounded-circle" style="width: 70px; height: 70px; object-fit: cover; border: 3px solid white;">
-                        </div>
-                        <h5 class="fw-bold mt-2" style="color:#333;">กรุณารอสักครู่</h5>
-                    </div>`,
-                  showConfirmButton: false,
-                  allowOutsideClick: false,
-                  background: 'transparent', // พื้นหลังใส
-                  backdrop: 'rgba(255,255,255,0.85)', // ฉากหลังขาวมัวๆ
-                  customClass: {
-                      popup: 'shadow-none' // ไม่มีเงากล่อง (เพราะพื้นใส)
-                  }
-              });
+              const textEl = el.querySelector('p');
+              if (textEl) textEl.innerText = text;
+              el.classList.remove('d-none');
+              el.classList.add('d-flex');
           } else {
-              Swal.close();
+              el.classList.remove('d-flex');
+              el.classList.add('d-none');
           }
       }
       
